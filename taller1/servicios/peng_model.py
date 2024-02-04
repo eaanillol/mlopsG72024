@@ -18,12 +18,13 @@ from sklearn.model_selection import train_test_split
 
 # 2. Class which describes a single flower measurements
 class penguin_data(BaseModel):
-    island: str 
-    culmen_length_mm: float 
-    culmen_depth_mm: float 
-    flipper_length_mm: float
-    body_mass_g: float
-    sex: str
+    culmen_length_mm: List[float]
+    culmen_depth_mm: List[float] 
+    flipper_length_mm: List[float]
+    body_mass_g: List[float]
+    sex: List[str]
+    delta15N: List[float]
+    delta13C: List[float]
 
 class PenguinModel:
     # 6. Class constructor, loads the dataset and loads the model
