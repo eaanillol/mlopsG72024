@@ -6,6 +6,7 @@ Created on Wed Jan 31 18:10:27 2024
 """
 import numpy as np
 import pandas as pd
+from typing import List
 from pydantic import BaseModel
 from sklearn.pipeline import Pipeline
 from sklearn.impute import KNNImputer
@@ -31,22 +32,26 @@ class PenguinModel:
     #    if exists. If not, calls the _train_model method and 
     #    saves the model
     def __init__(self):
-        self.df = pd.read_csv("penguins_size.csv")
+        self.df = pd.read_csv("penguins_lter.csv")
         self.model = self._train_model()
 
     # 4. Perform model training using the RandomForest classifier
     def _train_model(self):
-        
-        self.df.replace(".",np.nan,inplace = True)
 
-        X = self.df.drop(columns='species')
-        y = self.df['species']
+        self.df.drop(['studyName','Sample Number','Region','Island','Stage','Individual ID','Clutch Completion',
+               'Date Egg', 'Comments'], axis=1, inplace = True)
+        self.df.replace(".",np.nan,inplace = True)
+        self.df['Sex'] = self.df['Sex'].astype('category')
+        self.df['Species'] = self.df['Species'].astype('category')
+
+        X = self.df.drop(columns='Species')
+        y = self.df['Species']
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30, random_state=54)
         
         
-        penguins_char = self.df.select_dtypes(include="object").drop(['species'], axis=1).columns
+        penguins_char = self.df.select_dtypes(include="category").drop(['Species'], axis=1).columns
         
-        penguins_num = self.df.select_dtypes(exclude="object").columns
+        penguins_num = self.df.select_dtypes(exclude="category").columns
         
         ### Definición del método de desbalanceo mediante SMOTETomek
         
@@ -84,10 +89,13 @@ class PenguinModel:
 
     # 5. Make a prediction based on the user-entered data
     #    Returns the predicted species with its respective probability
-    def predict_species(self, island, culmen_length_mm, culmen_depth_mm, flipper_length_mm, body_mass_g, sex):
-        data_in = [[island, culmen_length_mm, culmen_depth_mm, flipper_length_mm, body_mass_g, sex]]
-        data_in = pd.DataFrame(data_in, columns=['island','culmen_length_mm','culmen_depth_mm',
-                                                 'flipper_length_mm','body_mass_g','sex'])
+    def predict_species(self, culmen_length_mm, culmen_depth_mm, flipper_length_mm, body_mass_g, sex,
+                        delta15N, delta13C):
+        data_in = [culmen_length_mm, culmen_depth_mm, flipper_length_mm, body_mass_g, sex,
+                   delta15N, delta13C]
+        data_in = {'Culmen Length (mm)':data_in[0],'Culmen Depth (mm)':data_in[1],
+                   'Flipper Length (mm)':data_in[2],'Body Mass (g)':data_in[3],'Sex':data_in[4],
+                   'Delta 15 N (o/oo)':data_in[5],'Delta 13 C (o/oo)':data_in[6]}
+        data_in = pd.DataFrame(data_in)
         prediction = self.model.predict(data_in)
-        probability = self.model.predict_proba(data_in).max()
-        return prediction[0], probability
+        return prediction
