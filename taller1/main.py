@@ -6,7 +6,7 @@ Created on Wed Jan 31 20:04:37 2024
 """
 # 1. Library imports
 from fastapi import FastAPI
-from peng_model import penguin_data, PenguinModel
+from servicios.peng_model import penguin_data, PenguinModel
 
 # 2. Create app and model objects
 app = FastAPI()
