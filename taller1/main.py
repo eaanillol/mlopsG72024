@@ -16,7 +16,7 @@ model = PenguinModel()
 #    JSON data and return the predicted flower species with the confidence
 @app.post('/predict')
 def predict_species(penguin: penguin_data):
-    data = penguin.dict()
+    data = penguin.model_dump()
     prediction = model.predict_species(
         data['culmen_length_mm'], data['culmen_depth_mm'], data['flipper_length_mm'],
         data['body_mass_g'], data['sex'],data['delta15N'], data['delta13C'])

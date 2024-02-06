@@ -37,12 +37,13 @@ class PenguinModel:
 
     # 4. Perform model training using the RandomForest classifier
     def _train_model(self):
-
+        
         self.df.drop(['studyName','Sample Number','Region','Island','Stage','Individual ID','Clutch Completion',
                'Date Egg', 'Comments'], axis=1, inplace = True)
         self.df.replace(".",np.nan,inplace = True)
         self.df['Sex'] = self.df['Sex'].astype('category')
         self.df['Species'] = self.df['Species'].astype('category')
+
 
         X = self.df.drop(columns='Species')
         y = self.df['Species']
@@ -97,5 +98,7 @@ class PenguinModel:
                    'Flipper Length (mm)':data_in[2],'Body Mass (g)':data_in[3],'Sex':data_in[4],
                    'Delta 15 N (o/oo)':data_in[5],'Delta 13 C (o/oo)':data_in[6]}
         data_in = pd.DataFrame(data_in)
+        print(data_in)
         prediction = self.model.predict(data_in)
+        probability = self.model.predict_proba(data_in).max()
         return prediction
