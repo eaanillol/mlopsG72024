@@ -22,6 +22,6 @@ def predict_species(penguin: penguin_data):
         data['body_mass_g'], data['sex'],data['delta15N'], data['delta13C'])
     
     return {
-        'prediction': prediction.tolist()
+        'prediction': prediction
         #'probability': probability
     }
