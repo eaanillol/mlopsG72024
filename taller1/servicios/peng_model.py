@@ -28,18 +28,25 @@ class penguin_data(BaseModel):
     Clutch_Completion:str = "Yes"
     Date_Egg :float = 2017    
     Comments: str = "Not enough blood for isotopes."
+    Model_select : int = 1
 
 class PenguinModel:
     # 6. Class constructor, loads the dataset and loads the model
-    #    if exists. If not, calls the _train_model method and 
-    #    saves the model
-    def __init__(self):
+    def __init__(self, model_select: int):
         self.df = pd.read_csv("penguins_lter.csv")
+        self.model_select = model_select  # Store the selected model number
         self.model = self._load_model()
-
+         
     # 4. Perform model training using the RandomForest classifier
     def _load_model(self):
-        model = joblib.load("RF_model.joblib")
+        if self.model_select == 1:
+            model = joblib.load("RF_model.joblib")
+        elif self.model_select == 2:
+            model = joblib.load("SVM_model.joblib") 
+        elif self.model_select == 3:
+            model = joblib.load("Regression_model.joblib")
+        else:
+            raise ValueError("Invalid value for Model_select. Please select from 1, 2, or 3.")
         return model
 
     # 5. Make a prediction based on the user-entered data
