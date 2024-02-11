@@ -1,7 +1,7 @@
 # mlopsG72024
 Curso de MLOPs
 
-El programa se compone de 3 archivos:
+El programa se compone de X archivos:
 
 1. data_prep.py: en este programa se realiza el preprocesamiento de los datos y el entrenamiento de los modelos.
      -   Como paso inicial se carga el archivo "penguins_lter.csv", al que posteriormente, como primer paso del preprocesamiento, se le eliminan las variables que no serán utilizadas para entrenar el modelo.
