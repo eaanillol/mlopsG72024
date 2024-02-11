@@ -13,7 +13,7 @@ El programa se compone de X archivos:
      -   ENTRENAMIENTO: Para cargar cada uno de los 3 modelos se utilizó un Pipeline para implementar los pasos de preprocesamiento a los datos de entrada y luego implementar el modelo. Para el modelo Random forest se utilizo la función GridSearch para seleccionar los parámetros que dieran el mejor valor de f1_score. Para los demás modelos solo se implementó un pipeline y se utilizaron los hiperparametros por defecto. Cada modelo, incluyendo el Pipeline, fue guardado usando la librería joblib.
 
 2. peng_model.py: En este archivo se definen las variables de entrada del programa, y se crea la clase Penguinmodel que contiene las funciones _load_model y predict_species.
-     - _load_model: carga el modelo .joblib mediante...
+     - _load_model: carga el modelo .joblib mediante la variable Model_select, la cual define que modelo debe ser utilizado (valores entre 1 y 3)
      - predict_species: realiza la predicción de la especie del pinguino en función de las variables de entrada definidas por usuario y retorna la especie predecida. antes de utilizarse los datos, estos son convertidos en un Dataframe para luego ser ingresados al modelo previamente entrenado.
 
 3. main.py
