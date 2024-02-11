@@ -28,10 +28,9 @@ class penguin_data(BaseModel):
     Clutch_Completion:str = "Yes"
     Date_Egg :float = 2017    
     Comments: str = "Not enough blood for isotopes."
-    Model_select : int = 1
 
 class PenguinModel:
-    # 6. Class constructor, loads the dataset and loads the model
+    # 6. Class constructor, loads the dataset and loadst he model
     def __init__(self, model_select: int):
         self.df = pd.read_csv("penguins_lter.csv")
         self.model_select = model_select  # Store the selected model number
