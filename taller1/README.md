@@ -6,7 +6,7 @@ Antes de comenzar se debe tener instalado:
 - Docker
 - Postman
 
-## Componentes pirncipales
+## Componentes principales
 
 El programa se compone de los siguientes archivos:
 
