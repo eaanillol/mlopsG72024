@@ -54,7 +54,7 @@ Contiene todas las dependencias python necesarias para arrancar la aplicación d
 Con el contenedor corriendo el servicio ya puede ser utilizado con la URL  local:
 http://localhost:8000/predict/{model_id}
 
-Como podemos apreciar debemos enviar el identificador del modelo a utilizar en la URL del request. Los posibles valores para la variable {model_id} son:
+Como podemos apreciar, debemos enviar el identificador del modelo a utilizar en la URL del request. Los posibles valores para la variable {model_id} son:
 - 1 para Random Forest.
 - 2 para SVM.
 - 3 para Regresión Líneal.
@@ -69,6 +69,6 @@ Si ingresamos un identificador fuera del Rango, por ejemplo:
 Obtendremos un mensaje de modelo no encontrado:
 ![Docker build.](./images/postman_invalid_value.png)
 
-El proyecto también tiene habilitada una URL de **swagger**, en la cual también probar el endpoint:
+El proyecto también tiene habilitada una URL de **swagger**, en la cual también se puede probar el endpoint:
 ``` http://localhost:8000/docs ```
 ![Docker build.](./images/swagger_1.png)
