@@ -5,8 +5,7 @@ Created on Wed Jan 31 20:04:37 2024
 @author: crist
 """
 # 1. Library imports
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
 from servicios.peng_model import penguin_data, PenguinModel
 
 # 2. Create app and model objects

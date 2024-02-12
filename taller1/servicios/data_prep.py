@@ -22,7 +22,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 #from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
 
 
-penguins = pd.read_csv("penguins_lter.csv")
+penguins = pd.read_csv("../data/penguins_lter.csv")
 
 penguins.drop(['studyName','Sample Number','Region','Island','Stage','Individual ID','Clutch Completion',
                'Date Egg', 'Comments'], axis=1, inplace = True)

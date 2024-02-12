@@ -39,11 +39,11 @@ class PenguinModel:
     # 4. Perform model training using the RandomForest classifier
     def _load_model(self):
         if self.model_select == 1:
-            model = joblib.load("RF_model.joblib")
+            model = joblib.load("servicios/RF_model.joblib")
         elif self.model_select == 2:
-            model = joblib.load("SVM_model.joblib") 
+            model = joblib.load("servicios/SVM_model.joblib") 
         elif self.model_select == 3:
-            model = joblib.load("Regression_model.joblib")
+            model = joblib.load("servicios/Regression_model.joblib")
         else:
             raise ValueError("Invalid value for Model_select. Please select from 1, 2, or 3.")
         return model
