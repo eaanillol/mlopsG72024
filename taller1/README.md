@@ -51,7 +51,7 @@ Contiene todas las dependencias python necesarias para arrancar la aplicación d
 ![Docker build.](./images/docker_run.png)
 
 ### API
-Con el contenedor corriendo el servicio ya puede ser utilizado con la URL  local:
+Con el contenedor corriendo, el servicio ya puede ser utilizado con la URL  local:
 http://localhost:8000/predict/{model_id}
 
 Como podemos apreciar, debemos enviar el identificador del modelo a utilizar en la URL del request. Los posibles valores para la variable {model_id} son:
