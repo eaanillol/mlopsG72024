@@ -1,0 +1,17 @@
+version: '1'
+
+services:
+  jupiter-taller2:
+    image: "tensorflow/tfx:1.12.0"
+    build:
+      #context: .
+      network: host
+    ports: 
+      - "8888:8888"
+      - "6006:6006"
+    volumes:
+          - '.:/tfx/src'
+    entrypoint: /run_jupyter.sh
+    container_name: tf
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
