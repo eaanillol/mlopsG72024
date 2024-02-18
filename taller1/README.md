@@ -2,7 +2,7 @@
 
 ## Prerequisitos
 Antes de comenzar se debe tener instalado:
-- Python 3.9
+- Python 3.12
 - Docker
 - Postman
 
