@@ -20,4 +20,4 @@ Nuestro repositorio es público, y lop podemos descargar ejecutando el siguiente
   ```git clone  https://github.com/eaanillol/mlopsG72024.git```
 
 Luego abrimos la consola y nos ubicamos en la carpeta donde se descargó el repositorio. Luego desde la consola vamos a la carpeta taller 2 y ejecutamos el siguiente comando con compose:
-Windows: docker-compose -f .\docker-compose.yaml run --name tfx  --service-ports --rm jupiter-taller2
+- Windows: docker-compose -f .\docker-compose.yaml run --name tfx  --service-ports --rm jupiter-taller2
