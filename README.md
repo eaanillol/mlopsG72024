@@ -12,4 +12,4 @@ Existen algunos commandos como "it" y "rm" que no estan disponibles en docker co
 - ****stdin_open:** true** 1/2 comandos que sustituyen el comando it que permite un modo interactivo. Esta variable permite interactuar por fuera del Docker container.
 - **tty: true:** 2/2 comandos que sustituyen el comando it que permite un modo interactivo. Esta variable permite interactuar dentro de el Docker container.
 
-**Nota:** la variable context: no es requerida al no necesitar subir el dockerfile, por el contrario la imagen "tensorflow/tfx:1.12.0" es la que se carga para el docker.
+**Nota:** la variable context: no es requerida al no necesitar subir el dockerfile, al trabajar con el archivo jupyter. Por el contrario la imagen "tensorflow/tfx:1.12.0" es la que se carga para el docker.
