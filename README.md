@@ -11,5 +11,5 @@ Existen algunos commandos como "it" y "rm" que no estan disponibles en docker co
 
 - ****stdin_open:** true** 1/2 comandos que sustituyen el comando it que permite un modo interactivo. Esta variable permite interactuar por fuera del Docker container.
 - **tty: true:** 2/2 comandos que sustituyen el comando it que permite un modo interactivo. Esta variable permite interactuar dentro de el Docker container.
-  
+- 
 
