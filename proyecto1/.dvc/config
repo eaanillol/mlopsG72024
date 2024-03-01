@@ -1,0 +1,6 @@
+[core]
+    remote = proyecto1data
+['remote "gdrive:"']
+    url = //1a7V32IImNQagdAwLbA93cMQ9CSduA5eT
+['remote "proyecto1data"']
+    url = gdrive://1a7V32IImNQagdAwLbA93cMQ9CSduA5eT
