@@ -1,3 +1,10 @@
+DVC:
+Es un sistema de control de versiones de código abierto que complementa los sistemas de control de versiones tradicionales como Git al centrarse en la gestión de archivos grandes, conjuntos de datos, modelos y experimentos, que son comunes en los flujos de trabajo de aprendizaje automático.
+
+Para cargar los datasets contenidos en el repositorio configurado en Google Drive, una vez haya clonado el repositorio y tenga acceso al folder "proyecto1", ejecute el siguiente comando: ```dvc pull```
+
+
+
 Para traducir el comando de Docker en un Docker compose, se realizaron las siguientes acciones:
 
 - El primer servicio se llama "jupiter-taller2"
