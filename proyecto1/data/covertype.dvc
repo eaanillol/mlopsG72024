@@ -1,6 +1,6 @@
 outs:
-- md5: 5e231f03459a8640fc265d1127b4967e.dir
-  size: 13043326
-  nfiles: 2
+- md5: 048aa400bb53c48dbf85fe61bb4e8e16.dir
+  size: 4061552
+  nfiles: 1
   hash: md5
   path: covertype
