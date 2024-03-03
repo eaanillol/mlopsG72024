@@ -1,0 +1,6 @@
+outs:
+- md5: 841dc658f0a81720a174103d1352333d.dir
+  size: 1828
+  nfiles: 1
+  hash: md5
+  path: serving
