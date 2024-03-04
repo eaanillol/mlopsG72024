@@ -3,7 +3,7 @@ Nuestro repositorio es público, y lo podemos descargar ejecutando el siguiente 
 
   ```git clone  https://github.com/eaanillol/mlopsG72024.git```
 
-  Abrimos la consola y nos ubicamos en la carpeta donde se descargó el repositorio. Luego desde la consola vamos a la carpeta **project1** y como primera medida procedemos a instalar  DVC:
+  Abrimos la consola y nos ubicamos en la carpeta donde se descargó el repositorio. Luego desde la consola vamos a la carpeta **projecto1** y como primera medida procedemos a instalar  DVC:
   
   ```pip install dvc```
 
