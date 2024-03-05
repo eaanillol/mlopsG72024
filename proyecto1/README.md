@@ -3,13 +3,19 @@ Nuestro repositorio es público, y lo podemos descargar ejecutando el siguiente 
 
   ```git clone  https://github.com/eaanillol/mlopsG72024.git```
 
-  Abrimos la consola y nos ubicamos en la carpeta donde se descargó el repositorio. Luego desde la consola vamos a la carpeta **project1** y como primera medida procedemos a instalar  DVC:
+  Abrimos la consola y nos ubicamos en la carpeta donde se descargó el repositorio. Luego desde la consola vamos a la carpeta **proyecto1** y como primera medida procedemos a instalar  DVC:
   
   ```pip install dvc```
 
 Después instalamos la librería dvc_gdrive:
 
   ```pip install dvc_gdrive```
+
+  Para cargar los datasets contenidos en el repositorio configurado en Google Drive, una vez haya clonado el repositorio y tenga acceso al folder "proyecto1", ejecute el siguiente comando: 
+
+```dvc pull``` 
+
+Este comando examina los archivos **covertype.dvc** y **serving.dvc** contenidos en la carpeta **"data"**, los cuales apuntan a la ubicacion remota de los datasets. Los hash almacenados en dichos ficheros determinan la version de los datos que deben ser usados en el folder. Para cargar los datos, automaticamente se crean los sub-foders **"covertype"** y **serving** en donde se almacenan los datasets con su última versión. **Nota:** al hacer pull por primera vez, es probable que necesite ingresar sus credenciales de google para acceder a la carpeta, la cual esta abierta a todo publico. La URL de la carpeta en drive esta almacenada en el archivo config, en la carpeta ".dvc". 
 
 Finalmente ejecutamos el siguiente comando con compose:
 - Windows: ```docker-compose -f .\docker-compose.yaml run --name tfx  --service-ports --rm jupiter-project1```
@@ -18,12 +24,6 @@ Finalmente ejecutamos el siguiente comando con compose:
 
 # DVC #
 Es un sistema de control de versiones de código abierto que complementa los sistemas de control de versiones tradicionales como Git al centrarse en la gestión de archivos grandes, conjuntos de datos, modelos y experimentos, que son comunes en los flujos de trabajo de aprendizaje automático.
-
-Para cargar los datasets contenidos en el repositorio configurado en Google Drive, una vez haya clonado el repositorio y tenga acceso al folder "proyecto1", ejecute el siguiente comando: 
-
-```dvc pull``` 
-
-Este comando examina los archivos **covertype.dvc** y **serving.dvc** contenidos en la carpeta **"data"**, los cuales apuntan a la ubicacion remota de los datasets. Los hash almacenados en dichos ficheros determinan la version de los datos que deben ser usados en el folder. Para cargar los datos, automaticamente se crean los sub-foders **"covertype"** y **serving** en donde se almacenan los datasets con su última versión. **Nota:** al hacer pull por primera vez, es probable que necesite ingresar sus credenciales de google para acceder a la carpeta, la cual esta abierta a todo publico. La URL de la carpeta en drive esta almacenada en el archivo config, en la carpeta ".dvc".
 
 Una vez realizado el pull en con dvc, se debe ejecutar las instrucciones en el ambiente de trabajo de Docker(jupyter). Los cambios aplicados a los datasets se actualizarán en la carpeta **"data"**. Luego almacenamos la nueva version de los datos mediante el siguiente comando: 
 
