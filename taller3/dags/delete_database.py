@@ -21,7 +21,7 @@ def delete_data():
     # Verificar si la tabla 'penguins' existe en la base de datos
     if 'penguins' in inspector.get_table_names():
         # Ejecutar la consulta para eliminar la tabla 'penguins'
-        engine.execute("DROP TABLE penguins")
+        engine.execute("DELETE FROM penguins")
         print("Tabla 'penguins' eliminada exitosamente.")
     else:
         print("La tabla 'penguins' no existe en la base de datos.")

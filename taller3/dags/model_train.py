@@ -72,18 +72,18 @@ def train_model():
     clf.fit(X_train, y_train)
 
     # Guardar el modelo entrenado
-    joblib.dump(clf, 'SVM_model.joblib')
+    joblib.dump(clf, '/opt/airflow/datos/SVM_model.joblib')
 
 # Crear el DAG
 dag = DAG('svm_training_dag', default_args=default_args, schedule_interval=None)
 
 # Sensor para esperar a que la tarea del DAG de carga de datos termine con éxito
-wait_for_data_loading = ExternalTaskSensor(
+"""wait_for_data_loading = ExternalTaskSensor(
     task_id='wait_for_data_loading',
     external_dag_id='data_loading_dag',
     external_task_id='load_dataset',
     dag=dag
-)
+)"""
 
 # Tarea para entrenar el modelo SVM
 train_model_task = PythonOperator(
@@ -93,4 +93,4 @@ train_model_task = PythonOperator(
 )
 
 # Establecer la dependencia entre el sensor y la tarea de entrenamiento del modelo
-wait_for_data_loading >> train_model_task
+#wait_for_data_loading >> train_model_task

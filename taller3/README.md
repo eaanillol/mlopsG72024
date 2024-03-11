@@ -44,3 +44,9 @@ COPY requirements.txt /requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt
 ```
 4. una vez realizados los cambios, simplemente ejecutando ```docker-compose up``` despues del build, todos los contenedores para los servicios incluidos en airflow deberían ser ejecutados. apauede corroborar que sea asi con el comando ```docker ps```
+
+# Ejecución de DAGS
+
+- Primero debemos ejecutar el DAG **data_loading_dag** que se encargará de copiar los datos desde el excel. 
+- Luego pasamos a correr el DAG **svm_training_dag** para preprocesar y entrenar el modelo del cual esperamos obtener un archivo joblib llamado **SVM_model.joblib**. Dicho archivo quedará guardado en la carpeta compartida de **datos**.
+- Finalmente procedemos a eliminación de los datos con el DAG **delete_data_dag**
