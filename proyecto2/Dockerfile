@@ -27,6 +27,6 @@ USER airflow
 RUN pip install --user --no-cache-dir -r /work/requirements.txt
 
 # Exponer puertos necesarios (ejemplo: el puerto web de Airflow y otros que necesites)
-EXPOSE 8080
+EXPOSE 8080 8081 8082
 
 # Utilizar el ENTRYPOINT y CMD por defecto de Airflow
