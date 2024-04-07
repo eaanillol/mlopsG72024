@@ -11,21 +11,21 @@ Mlflow organiza el cliclo de vida de los modelos de machine learning mediante el
 
 Minio funciona como repositorio para los modelos y archivos de configuración. 
 
-Para almacenar los datos descargados desde Airflow y metricas que se obtienen del entrenamiento de los modelos usamos una base de datos Mysql:
+Para almacenar los datos descargados desde Airflow y metricas que se obtienen del entrenamiento de los modelos, usamos una base de datos Mysql:
 - **mlflow**: Nombre de la base de datos de mlflow.
 - **cover_type**: Nombre la base de datos que tiene la información para entrenar el modelo.
 
-Por último se agregó una interfaz gráfica por medio de streamlit para que el usuario con el modelo y sus componentes(airflow, minio, mlflow, fastapi):
+Por último se agregó una interfaz gráfica por medio de streamlit, para que el usuario ingrese al modelo y sus componentes(airflow, minio, mlflow, fastapi):
 
 ![Streamlit.](./img/streamlit.png) 
 
-Disponible en la url: 
+Streamlit se encuentra disponible en la url: 
 http://10.43.101.156:8086/
 # Configuración de Componentes #
 
 Los siguientes servicios se despliegan a través del archivo ```docker-compose.yaml```.
 ## Airflow ##
-Toda la configuración se encuentra definida en el archivo conpose y se realizaron los siguientes cambios:
+Toda la configuración se encuentra definida en el archivo compose y se realizaron los siguientes cambios:
 
 - En la sección **environment** se adicionaron las credenciales de minio, para establecer la conexión entre Airflow y el repositorio, y así poder almacenar los modelos entrenados dentro de los dags:
     ```
@@ -59,7 +59,7 @@ mlflow_serv:
  ```
 El servicio cuenta con su propio docker file(Dockerfile_mlfow), el cual instala las librerias necesarias para mlflow.
 
- Se habilitó el puerto 8084 para acceder a la interfaz, se estableció conexión para el almacenamiento del backend con Mysql y minio para el almacenamiento de los objetos en el bucket mlflows3.
+ Se habilitó el puerto 8084 para acceder a la interfaz, se estableció conexión para el almacenamiento del backend con Mysql y minio, y con esto almacenar los objetos en el bucket mlflows3.
 
 ## Minio ##
 Configuración minio:
@@ -101,7 +101,7 @@ mi_api:
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret
   ```
-Para Fastapi creamos una imagen personalizada que reponde por el puerto 8085. Adicionamos variables de entorno con datos de acceso para minio y mlflow.
+Para Fastapi creamos una imagen personalizada que responde por el puerto 8085. Adicionamos variables de entorno con datos de acceso para minio y mlflow.
 
 Esta imagen también cuenta con su propio dockerfile(Dockerfile_api), que se encarga de ejecutar la aplicacipon en uvicorn.
 
@@ -116,15 +116,14 @@ streamlit_app:
     depends_on:
       - mi_api
 ```
-Este servicio también tiene una configuración adicional en el dockerfile Dockerfile_streamlit donde se ejecuta la app streamlit. El puerto utilizado para esta imagen es el 8086.
-
+Este servicio también tiene una configuración adicional en el dockerfile **Dockerfile_streamlit** donde se ejecuta la app streamlit. El puerto utilizado para esta imagen es el 8086.
 
 # Ejecución #
-Para levantar el servicio en el servidor debemos:
-- Digitamos ``` sudo su ``` para logeuarnos como root.
+Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
+- Digitamos ``` sudo su ``` para loguearnos como root.
 - Ingresamos la clave.
--Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
-- Finalmentem, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
+- Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
+- Finalmente, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
 
 
  
