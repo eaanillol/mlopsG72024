@@ -54,6 +54,9 @@ x-airflow-common:
   build: .
   environment:
     &airflow-common-env
+    MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    AWS_ACCESS_KEY_ID: admin
+    AWS_SECRET_ACCESS_KEY: supersecret
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     # For backward compatibility, with Airflow <2.3
@@ -87,7 +90,61 @@ x-airflow-common:
     minio:
       condition: service_started
 
-services:
+services: 
+
+  streamlit_app:
+    build:
+      context: .
+      dockerfile: Dockerfile_streamlit
+    ports:
+      - "8086:8501"
+    depends_on:
+      - mi_api
+
+  mi_api:
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    volumes:
+      - ./app:/code/app
+    ports:
+      - "8085:8000"
+    depends_on:
+      - mlflow_serv
+      - minio
+    environment:
+      MLFLOW_URI: "http://mlflow_serv:5000"
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+
+  mlflow_serv:
+    build:
+      context: .
+      dockerfile: Dockerfile_mlflow
+    ports:
+      - "8084:5000" 
+    command: >
+      mlflow server
+      --backend-store-uri mysql+pymysql://root:airflow@mysql:3306/mlflow
+      --default-artifact-root s3://mlflows3
+      --host 0.0.0.0
+      --port 5000
+      --serve-artifacts
+    depends_on:
+      - mysql
+      - minio
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
   minio:
     container_name: Minio
     command: server /data --console-address ":9001"
@@ -96,8 +153,8 @@ services:
       - MINIO_ROOT_PASSWORD=supersecret
     image: quay.io/minio/minio:latest
     ports:
-      - '8081:9000'
-      - '9001:9001'
+      - '9000:9000'
+      - '8083:9001'
     volumes:
       - ./minio:/data
     restart: unless-stopped
@@ -122,7 +179,7 @@ services:
     ports:
       - "8082:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: airflow  
+      MYSQL_ROOT_PASSWORD: airflow
       MYSQL_DATABASE: cover_type
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
@@ -131,7 +188,8 @@ services:
       retries: 3
       start_period: 10s
     restart: always
-    
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t    
     volumes:
       - mysql_data:/var/lib/mysql
 

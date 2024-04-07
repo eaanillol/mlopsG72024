@@ -7,15 +7,23 @@ Created on Wed Mar 27 22:04:39 2024
 
 import requests
 import pandas as pd
+from time import sleep
 from airflow import DAG
-from datetime import datetime
+from datetime import datetime, timedelta
 from airflow.operators.python_operator import PythonOperator
 from sqlalchemy import create_engine
+
+def pausa():
+    sleep(360)  # 360 segundos equivalen a 6 minutos
 
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2024, 3, 4)
+    'start_date': datetime(2024, 4, 5),
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
 }
 
 def load_dataset():
@@ -42,7 +50,7 @@ def load_dataset():
         cover_type = pd.DataFrame(data["data"],columns = column_names)
             
         # Conexión a MySQL
-        engine = create_engine('mysql://root:airflow@mysql:8082/cover_type')
+        engine = create_engine('mysql://root:airflow@mysql:3306/cover_type')
         
         # Guardar los datos en MySQL
         cover_type.to_sql('cover_type', con=engine, if_exists='append', index=False)
@@ -53,8 +61,14 @@ def load_dataset():
     
 with DAG(dag_id = 'data_loading_dag', 
          default_args=default_args, 
-         schedule_interval=None) as dag:
+         schedule_interval=timedelta(days=1),
+         catchup= True) as dag:
 
-     load_data_task = PythonOperator(task_id='load_dataset',
+         retraso = PythonOperator(
+                                  task_id ="min_delay_6",
+                                  python_callable =pausa,
+                                 )
+         load_data_task = PythonOperator(task_id='load_dataset',
                                      python_callable=load_dataset)
      
+retraso >> load_data_task
