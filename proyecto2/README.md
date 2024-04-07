@@ -105,7 +105,7 @@ Para Fastapi creamos una imagen personalizada que reponde por el puerto 8085. Ad
 
 Esta imagen también cuenta con su propio dockerfile(Dockerfile_api), que se encarga de ejecutar la aplicacipon en uvicorn.
 
-# Streamlit #
+## Streamlit ##
 ```
 streamlit_app:
     build:
