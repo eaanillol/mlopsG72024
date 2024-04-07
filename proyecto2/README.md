@@ -1,78 +1,130 @@
-# Descargar Repositorio #
-Nuestro repositorio es público, y lo podemos descargar ejecutando el siguiente comando:
+# Entorno #
 
-  ```git clone  https://github.com/eaanillol/mlopsG72024.git```
+![Arquitectura.](./img/arquitectura.png) 
 
-  Abrimos la consola y nos ubicamos en la carpeta donde se descargó el repositorio. Luego desde la consola vamos a la carpeta **proyecto1** y como primera medida procedemos a instalar  DVC:
-  
-  ```pip install dvc```
+Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
-Después instalamos la librería dvc_gdrive:
+- Descargar los datos expuestos en la Data API y almacenarlos en la base de datos Mysql.
+- Entrenar el modelo SVM con los datos extraidos,  registrar los experimentos con su respectiva metadata en mlflow y Mysql, y almacenar los modelos generados en minio.
 
-  ```pip install dvc_gdrive```
+Mlflow organiza el cliclo de vida de los modelos de machine learning mediante el registro de metadata producto del entrenamiento. La metadata incluye las métricas, versiones, expermientos y parámetros. Adicionalmente administra y crea los objetos de ejecución y configuración de los modelos creados.
 
-  Para cargar los datasets contenidos en el repositorio configurado en Google Drive, una vez haya clonado el repositorio y tenga acceso al folder "proyecto1", ejecute el siguiente comando: 
+Minio funciona como repositorio para los modelos y archivos de configuración. 
 
-```dvc pull``` 
+Para almacenar los datos descargados desde Airflow y metricas que se obtienen del entrenamiento de los modelos usamos una base de datos Mysql:
+- **mlflow**: Nombre de la base de datos de mlflow.
+- **cover_type**: Nombre la base de datos que tiene la información para entrenar el modelo.
 
-Este comando examina los archivos **covertype.dvc** y **serving.dvc** contenidos en la carpeta **"data"**, los cuales apuntan a la ubicacion remota de los datasets. Los hash almacenados en dichos ficheros determinan la version de los datos que deben ser usados en el folder. Para cargar los datos, automaticamente se crean los sub-foders **"covertype"** y **serving** en donde se almacenan los datasets con su última versión. **Nota:** al hacer pull por primera vez, es probable que necesite ingresar sus credenciales de google para acceder a la carpeta, la cual esta abierta a todo publico. La URL de la carpeta en drive esta almacenada en el archivo config, en la carpeta ".dvc". 
+Por último se agregó una interfaz gráfica por medio de streamlit para que el usuario con el modelo y sus componentes(airflow, minio, mlflow, fastapi):
 
-Finalmente ejecutamos el siguiente comando con compose:
-- Windows: ```docker-compose -f .\docker-compose.yaml run --name tfx  --service-ports --rm jupiter-project1```
+![Streamlit.](./img/streamlit.png) 
 
-**Importante**: Al ejecutar el proyecto en windows recomendamos bajar el repositorio en una carpeta de la raíz C:. Esto con el fin de evitar el error de directorio "filename too large"
+Disponible en la url: 
+http://10.43.101.156:8086/
+# Configuración de Componentes #
 
-# DVC #
-Es un sistema de control de versiones de código abierto que complementa los sistemas de control de versiones tradicionales como Git al centrarse en la gestión de archivos grandes, conjuntos de datos, modelos y experimentos, que son comunes en los flujos de trabajo de aprendizaje automático.
+Los siguientes servicios se despliegan a través del archivo ```docker-compose.yaml```.
+## Airflow ##
+Toda la configuración se encuentra definida en el archivo conpose y se realizaron los siguientes cambios:
 
-Una vez realizado el pull en con dvc, se debe ejecutar las instrucciones en el ambiente de trabajo de Docker(jupyter). Los cambios aplicados a los datasets se actualizarán en la carpeta **"data"**. Luego almacenamos la nueva version de los datos mediante el siguiente comando: 
+- En la sección **environment** se adicionaron las credenciales de minio, para establecer la conexión entre Airflow y el repositorio, y así poder almacenar los modelos entrenados dentro de los dags:
+    ```
+    MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    AWS_ACCESS_KEY_ID: admin
+    AWS_SECRET_ACCESS_KEY: supersecret
+    ```
+## Mlflow ##
+Se creó un servicio en el docker compose de la siguiente manera:
+```
+mlflow_serv:
+    build:
+      context: .
+      dockerfile: Dockerfile_mlflow
+    ports:
+      - "8084:5000" 
+    command: >
+      mlflow server
+      --backend-store-uri mysql+pymysql://root:airflow@mysql:3306/mlflow
+      --default-artifact-root s3://mlflows3
+      --host 0.0.0.0
+      --port 5000
+      --serve-artifacts
+    depends_on:
+      - mysql
+      - minio
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+ ```
+El servicio cuenta con su propio docker file(Dockerfile_mlfow), el cual instala las librerias necesarias para mlflow.
 
-```dvc add data/covertype```
+ Se habilitó el puerto 8084 para acceder a la interfaz, se estableció conexión para el almacenamiento del backend con Mysql y minio para el almacenamiento de los objetos en el bucket mlflows3.
 
-```dvc add data/serving```
+## Minio ##
+Configuración minio:
+ ```
+minio:
+    container_name: Minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=supersecret
+    image: quay.io/minio/minio:latest
+    ports:
+      - '9000:9000'
+      - '8083:9001'
+    volumes:
+      - ./minio:/data
+    restart: unless-stopped
+ ```
+Como podemos ver le asignamos unas credenciales para el acceso al servicio, el cual responde por dos puertos:
+- 9000 para la consola
+- 8083 para la interfaz gráfica
 
- Posteriormente actualice los archivos **covertype.dvc** y **serving.dvc**  mediante el comando: 
+## Fastapi ##
+ ```
+mi_api:
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    volumes:
+      - ./app:/code/app
+    ports:
+      - "8085:8000"
+    depends_on:
+      - mlflow_serv
+      - minio
+    environment:
+      MLFLOW_URI: "http://mlflow_serv:5000"
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+  ```
+Para Fastapi creamos una imagen personalizada que reponde por el puerto 8085. Adicionamos variables de entorno con datos de acceso para minio y mlflow.
+
+Esta imagen también cuenta con su propio dockerfile(Dockerfile_api), que se encarga de ejecutar la aplicacipon en uvicorn.
+
+# Streamlit #
+```
+streamlit_app:
+    build:
+      context: .
+      dockerfile: Dockerfile_streamlit
+    ports:
+      - "8086:8501"
+    depends_on:
+      - mi_api
+```
+Este servicio también tiene una configuración adicional en el dockerfile Dockerfile_streamlit donde se ejecuta la app streamlit. El puerto utilizado para esta imagen es el 8086.
+
+
+# Ejecución #
+Para levantar el servicio en el servidor debemos:
+- Digitamos ``` sudo su ``` para logeuarnos como root.
+- Ingresamos la clave.
+-Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
+- Finalmentem, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
+
+
  
- ```git add data/covertype.dvc```
-
-  ```git add data/serving.dvc```
- 
-  El cual almacenará el nuevo hash correspondiente a la nueva version de los datasets. Después de realizar estos pasos, también se puede ejecutar ```dvc push``` para sincronizar los cambios en los metadatos de DVC con el almacenamiento remoto (Google Drive).
-
-**IMPORTANTE:** Una vez actualice los archivos **covertype.dvc** y **serving.dvc**, es recomendable incluir un commit con información detallada de los cambios en el dataset:
-
-```git commit -m "Mensajes de mis cambios"``` 
-
-Esto será necesario si desea cargar una version anterior del dataset.
-
-En caso de que desee cargar una version previa de los datos, utilice los siguiente comandos: 
-
-```git log -- data/covertype.dvc``` 
-
-```git log -- data/serving.dvc``` 
-
-El cual le mostrará una lista de las versiones previas de los archivos dvc almacenados en github con su respectivo commit. Identifique la version de covertype que desee recuperar e ingrese el siguiente comando  ```git checkout <commit tag> -- data/covertype.dvc```. Posteriormente, ejecutamos los siguientes comandos para cargar uno a uno los datasets correspondientes a cada data:
-
- ```dvc checkout -f data/covertype.dvc```
-
- ```dvc checkout -f data/serving.dvc```
-
- O podemos hacer un pull con dvc y se actualizarán todos los dataset de nuestro repositorio dvc:
- 
-  ```dvc pull```
- 
- Con esto, DVC cargará la version de los datasets correspondiente al hash almacenado en la version de los archivos dvc que tenemos. Las diferentes versiones de los datos estan almacenadas en la carpeta cache dentro del folder .dvc. Estas versiones previas solo se almacenan a nivel local.
-
-Una vez finalice sus tareas y tenga una version final del dataset, ingrese de nuevo los comandos 
-
-```dvc add data/covertype data/serving ```
-
-```git add data/covertype.dvc data/serving.dvc```
-
- ```dvc push``` 
- 
- para almacenar la ultima version de el dataset en el repositorio.
-
-
-
-
