@@ -11,9 +11,9 @@ Mlflow organiza el cliclo de vida de los modelos de machine learning mediante el
 
 Minio funciona como repositorio para los modelos y archivos de configuración. 
 
-Para almacenar los datos descargados desde Airflow y metricas que se obtienen del entrenamiento de los modelos, usamos una base de datos Mysql:
-- **mlflow**: Nombre de la base de datos de mlflow.
-- **cover_type**: Nombre la base de datos que tiene la información para entrenar el modelo.
+Para almacenar los datos descargados desde Airflow y metricas que se obtienen del entrenamiento de los modelos usamos el sistema de gestión Mysql, en el cual 2 bases de datos fueron configuradas:
+- **mlflow**: Nombre de la base de datos de mlflow para almacenamiento de metadatos.
+- **cover_type**: Nombre la base de datos que tiene el dataset solicitado a la api externa, para entrenar el modelo.
 
 Por último se agregó una interfaz gráfica por medio de streamlit, para que el usuario ingrese al modelo y sus componentes(airflow, minio, mlflow, fastapi):
 
