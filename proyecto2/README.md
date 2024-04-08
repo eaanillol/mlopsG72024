@@ -4,8 +4,8 @@
 
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
-- Descargar los datos expuestos en la Data API y almacenarlos en la base de datos Mysql.
-- Entrenar el modelo SVM con los datos extraidos,  registrar los experimentos con su respectiva metadata en mlflow y Mysql, y almacenar los modelos generados en minio.
+- Descargar los datos expuestos en la Data API y almacenarlos en la base de datos Mysql. Cabe indicar que la API encargada de entregar los datos se actualiza cada 5 minutos, por lo que el DAG de solucitud de datos tiene un retraso de 6 minutos para dar tiempo a la API a cambiar los datos aleatorios. Esto, en caso de que existan varias ejecuciones en la cola y así evitar que puedan ejecutarse simultaneamente, debido a que el DAG se ejecuta una vez al dia al tener el argumento catchup = True.
+- Entrenar el modelo SVM con los datos extraidos,  registrar los experimentos con su respectiva metadata en mlflow y Mysql, y almacenar los modelos generados en minio. El entrenamiento del modelo cuenta con una etapa de random search de 5 iteraciones, por lo que la ejecución del mismo puede tomar varios minutos. 
 
 Mlflow organiza el cliclo de vida de los modelos de machine learning mediante el registro de metadata producto del entrenamiento. La metadata incluye las métricas, versiones, expermientos y parámetros. Adicionalmente administra y crea los objetos de ejecución y configuración de los modelos creados.
 
@@ -81,6 +81,7 @@ minio:
 Como podemos ver le asignamos unas credenciales para el acceso al servicio, el cual responde por dos puertos:
 - 9000 para la consola
 - 8083 para la interfaz gráfica
+- Las credenciales para acceder al repositorio son: USUARIO: admin CONTRASEÑA: supersecret
 
 ## Fastapi ##
  ```
@@ -101,9 +102,9 @@ mi_api:
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret
   ```
-Para Fastapi creamos una imagen personalizada que responde por el puerto 8085. Adicionamos variables de entorno con datos de acceso para minio y mlflow.
+Para Fastapi creamos una imagen personalizada que responde por el puerto 8085. Adicionamos variables de entorno con datos de acceso para minio y mlflow. Para acceder a la documentación, se habilitó el puerto 8085.
 
-Esta imagen también cuenta con su propio dockerfile(Dockerfile_api), que se encarga de ejecutar la aplicacipon en uvicorn.
+Esta imagen también cuenta con su propio dockerfile(Dockerfile_api), que se encarga de ejecutar la aplicación ```main.py``` en uvicorn.
 
 ## Streamlit ##
 ```
@@ -116,7 +117,7 @@ streamlit_app:
     depends_on:
       - mi_api
 ```
-Este servicio también tiene una configuración adicional en el dockerfile **Dockerfile_streamlit** donde se ejecuta la app streamlit. El puerto utilizado para esta imagen es el 8086.
+Este servicio también tiene una configuración adicional en el dockerfile **Dockerfile_streamlit** donde se ejecuta la aplicación ```app_streamlit.py```. El puerto utilizado para este servicio es el 8086.
 
 # Ejecución #
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
@@ -124,6 +125,7 @@ Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Ingresamos la clave.
 - Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
 - Finalmente, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
+- desde la URL http://10.43.101.156:8086/ se puede acceder a la interfaz de streamlit, la cual tiene links de acceso a las URLs de los demás servicios, a los cuales se pueden acceder por separado mediante http://10.43.101.156:XXXX, donde XXXX son los puertos habilitados para cada servicio que fueron mencionados previamente.
 
 
  
