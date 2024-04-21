@@ -1,0 +1,58 @@
+services:
+
+  mi_api_repo:
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    ports:
+      - "8085:8000"
+    environment:
+      MLFLOW_URI: "http://mlflow_serv:5000"
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t  
+  
+  mlflow_serv_t4:
+    build:
+      context: .
+      dockerfile: Dockerfile_mlflow
+    ports:
+      - "5000:5000" 
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///./mlflodb_t4.db 
+      --default-artifact-root s3://mlflows3
+      --host 0.0.0.0
+      --port 5000
+      --serve-artifacts
+    depends_on:
+      - minio_t4
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  
+  minio_t4:
+    container_name: Minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=supersecret
+    image: quay.io/minio/minio:latest
+    ports:
+      - '9000:9000'
+      - '8083:9001'
+    volumes:
+      - ./minio:/data
+    restart: unless-stopped
+
+volumes:
+  minio-data:

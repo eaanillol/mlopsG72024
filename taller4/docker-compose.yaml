@@ -1,0 +1,75 @@
+version: '1'
+
+services:
+  
+  mi_api_repo:
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    volumes:
+      - ./app:/code/app
+    ports:
+      - "8085:8000"
+    depends_on:
+      - mlflow_serv_t4
+      - minio  
+    environment:
+      MLFLOW_URI: "http://mlflow_serv_t4:5000"
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    networks:
+      - expose
+
+  minio:
+    container_name: Minio_t4
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=supersecret
+    image: quay.io/minio/minio:latest
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - ./minio:/data
+    restart: unless-stopped
+    networks:
+      - expose
+  
+  #####MLFLOW Cobnnfiguration####
+  mlflow_serv_t4:
+    build:
+      context: .
+      dockerfile: Dockerfile_mlflow
+    ports:
+      - "5000:5000" 
+    command: >
+      mlflow server
+      --backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:8082/mlflow
+      --default-artifact-root s3://mlflows3
+      --host 0.0.0.0
+      --port 5000
+      --serve-artifacts
+    depends_on:
+      - minio
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - expose
+
+volumes:
+  minio-data:
+
+networks:
+  expose:
+    driver: bridge
