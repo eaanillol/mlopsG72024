@@ -3,9 +3,7 @@ version: '1'
 services:
   
   mi_api_repo:
-    build:
-      context: .
-      dockerfile: Dockerfile_api
+    image: "anloder4/taller4-mi_api_repo:latest"
     volumes:
       - ./app:/code/app
     ports:
@@ -22,7 +20,7 @@ services:
     tty: true        # docker run -t
     networks:
       - expose
-
+      
   minio:
     container_name: Minio_t4
     command: server /data --console-address ":9001"
