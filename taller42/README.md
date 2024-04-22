@@ -12,7 +12,7 @@ Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 
 # Entorno #
 
-![Arquitectura.](./img/arquitectura.png) 
+![Arquitectura.](./img/locust_inicio.png) 
 
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
