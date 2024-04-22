@@ -3,11 +3,11 @@ version: '1'
 services:
   
   mi_api_repo:
-    image: "anloder4/taller4-mi_api_repo:latest"
+    image: "anloder4/taller4-mi_api_repo:latest1"
     volumes:
       - ./app:/code/app
     ports:
-      - "8085:8000"
+      - "8087:8000"
     depends_on:
       - mlflow_serv_t4
       - minio  
@@ -18,8 +18,8 @@ services:
       AWS_SECRET_ACCESS_KEY: supersecret
     stdin_open: true # docker run -i
     tty: true        # docker run -t
-    networks:
-      - expose
+    #networks:
+    #  - expose
       
   minio:
     container_name: Minio_t4
@@ -34,8 +34,8 @@ services:
     volumes:
       - ./minio:/data
     restart: unless-stopped
-    networks:
-      - expose
+    #networks:
+    #  - expose
   
   #####MLFLOW Cobnnfiguration####
   mlflow_serv_t4:
@@ -46,7 +46,7 @@ services:
       - "5000:5000" 
     command: >
       mlflow server
-      --backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:8082/mlflow
+      --backend-store-uri mysql+pymysql://root:airflow@mysql:3306/mlflow
       --default-artifact-root s3://mlflows3
       --host 0.0.0.0
       --port 5000
@@ -62,12 +62,33 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - expose
+    #networks:
+    #  - expose
+  mysql:
+    image: mysql:latest
+    ports:
+      - "8082:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: airflow
+      MYSQL_DATABASE: cover_type
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: always
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    volumes:
+      - mysql_data:/var/lib/mysql
+    #networks:
+    #  - expose
 
 volumes:
   minio-data:
+  mysql_data:
 
-networks:
-  expose:
-    driver: bridge
+#networks:
+#  expose:
+#    driver: bridge
