@@ -8,11 +8,9 @@ Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Una vez levantado el docker de proyecto 2, ejecutamos ``` docker compose -f docker-compose-locust.yaml up --build ``` en una nueva ventana del terminal para levantar el docker que ejecuta la instancia de locust.
 - desde la URL http://10.43.101.156:8089/ se puede acceder a la interfaz de locust, desde la cual se pueden realizar las pruebas de carga correspondientes, utilizando las siguientes credenciales:
 
- ![New load test credentials.](./img/arquitectura.png)
+ ![New load test credentials.](./img/locust_inicio.png)
 
 # Entorno #
-
-![Arquitectura.](./img/locust_inicio.png) 
 
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
