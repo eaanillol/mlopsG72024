@@ -118,7 +118,11 @@ services:
       MLFLOW_S3_ENDPOINT_URL: http://minio:9000
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret
-
+    deploy:
+      resources:
+        limits:
+          cpus: 2
+          memory: 500M
   mlflow_serv:
     build:
       context: .
@@ -394,3 +398,7 @@ volumes:
   minio-data:
   postgres-db-volume:
   mysql_data:
+networks:
+  network1:
+      name: proyecto2_default
+      external: true
