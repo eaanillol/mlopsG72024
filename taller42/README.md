@@ -1,3 +1,16 @@
+# Publicar imagen en Dockerhub #
+Antes de comenzar como prerequisito debemos tener una cuenta creada en dockerhub. Luego, ingresamos al servidor virtual  10.43.101.156, cuando estemos ahí vamos la carpeta ``` "/home/estudiante/mlopsG72024/proyecto2/ ``` y ejecutamos el comando ``` docker image ls ```. Con esto podemos ver la imagen de la api que ya está creada (proyecto2-mi_api).
+
+Para poder hacer push al repositorio en dockerhub debemos hacer lo siguiente:
+- Loguearnos con la cuenta de dockerhub: ``` docker login -u anloder4 ```
+- Digitamos la clave del usuario.
+- Renombramos el tag de la imágen: ``` docker tag proyecto2-mi_api anloder4/proyecto2-mi_api ``` 
+- Hacemos push al repositorio: ```  docker push anloder4/taller4-mi_api_repo:latest ``` 
+
+Con esto la imágen ya se encuentra publicada en nuestra cuenta de dockerhub.
+
+ ![New load test credentials.](./img/dockerhub_image.png)
+
 # Ejecución #
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Digitamos ``` sudo su ``` para loguearnos como root.
