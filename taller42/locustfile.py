@@ -1,4 +1,4 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, task, between,constant
 from pydantic import BaseModel
 import json
 class CoverType(BaseModel):
@@ -14,11 +14,11 @@ class CoverType(BaseModel):
     Hillshade_3pm: int = 148
     Horizontal_Distance_To_Fire_Points: int =  6279
     Wilderness_Area: str =" Rawah"
-    Soil_Type: str =" C7745
+    Soil_Type: str =" C7745"
 
 class MLModelLoadTester(HttpUser):
     wait_time = constant(1)  # Tiempo entre tareas ejecutadas por cada usuario simulado.
-    host = "http://inference:80"
+    host = "http://10.43.101.156:8085"
 
     @task
     def predict(self):
@@ -35,9 +35,9 @@ class MLModelLoadTester(HttpUser):
             "Hillshade_3pm": 148,
             "Horizontal_Distance_To_Fire_Points": 6279,
             "Wilderness_Area": "Rawah",
-            "Soil_Type": "C7745"
+            "Soil_Type": "C7745"  
                   }
         headers = {'Content-Type': 'application/json'}
-
+        
         # Enviar solicitud POST al endpoint /predict
         self.client.post("/predict", data=json.dumps(payload), headers=headers)
