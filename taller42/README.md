@@ -4,7 +4,7 @@ Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Ingresamos la clave.
 - Desde la consola, vamos al directorio ``` "/home/estudiante/mlopsG72024/proyecto2/ ```
 - Estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```, para levantar el docker de proyecto 2, cuya inferencia creada en FastAPI fue utilizada para implementar la libreria de locust.
-- Previo a acceder a la interfaz de locust, verifica que la api de proyecto 2 funcione adecuadamente, ingresando a la URL ``` http://10.43.101.156:8085/ ``` y ejecutando la predicción, si en el response body no aparece un mensaje de error, estamos listos para ejecutar locust.
+- Previo a acceder a la interfaz de locust, verifica que la api de proyecto 2 funcione adecuadamente, ingresando a la URL  http://10.43.101.156:8085/  y ejecutando la predicción, si en el response body no aparece un mensaje de error, estamos listos para ejecutar locust.
 - Una vez levantado el docker de proyecto 2, ejecutamos ``` docker compose -f docker-compose-locust.yaml up --build ``` en una nueva ventana del terminal para levantar el docker que ejecuta la instancia de locust.
 - desde la URL http://10.43.101.156:8089/ se puede acceder a la interfaz de locust, desde la cual se pueden realizar las pruebas de carga correspondientes, utilizando las siguientes credenciales:
 
