@@ -15,13 +15,13 @@ Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 Se configuraron diferentes recursos hasta identificar los valores minimos necesarios para que el sistema soportara 10.000 peticiones, de los cuales
 
 1. En el primer test, se habilitó solo 1 CPU y 200M de memoria, en donde el sistema falló luego de 4000 peticiones.
- ![New load test credentials.](./img/locust_inicio.png)
+ ![New load test credentials.](./img/prueba1.png)
 
 2. En el segundo test, se habilitaron 2 CPU y 200M de memoria, en donde el sistema falló luego de 6000 peticiones.
- ![New load test credentials.](./img/locust_inicio.png)
+ ![New load test credentials.](./img/prueba2.png)
 
 3. Finalmente, en el tercer test, se habilitaron 2 CPU y 500m de memoria, en donde el sistema logró estabilizarse despues de las 10000 peticiones.
- ![New load test credentials.](./img/locust_inicio.png)
+ ![New load test credentials.](./img/prueba3.png)
 
 # Entorno #
 
