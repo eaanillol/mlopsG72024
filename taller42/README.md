@@ -1,3 +1,15 @@
+# Ejecución #
+Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
+- Digitamos ``` sudo su ``` para loguearnos como root.
+- Ingresamos la clave.
+- Desde la consola, vamos al directorio ``` "/home/estudiante/mlopsG72024/proyecto2/ ```
+- Estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```, para levantar el docker de proyecto 2, cuya inferencia creada en FastAPI fue utilizada para implementar la libreria de locust.
+- Previo a acceder a la interfaz de locust, verifica que la api de proyecto 2 funcione adecuadamente, ingresando a la URL ``` http://10.43.101.156:8085/ ``` y ejecutando la predicción, si en el response body no aparece un mensaje de error, estamos listos para ejecutar locust.
+- Una vez levantado el docker de proyecto 2, ejecutamos ``` docker compose -f docker-compose-locust.yaml up --build ``` en una nueva ventana del terminal para levantar el docker que ejecuta la instancia de locust.
+- desde la URL http://10.43.101.156:8089/ se puede acceder a la interfaz de locust, desde la cual se pueden realizar las pruebas de carga correspondientes, utilizando las siguientes credenciales:
+
+ ![New load test credentials.](./img/arquitectura.png)
+
 # Entorno #
 
 ![Arquitectura.](./img/arquitectura.png) 
@@ -119,13 +131,6 @@ streamlit_app:
 ```
 Este servicio también tiene una configuración adicional en el dockerfile **Dockerfile_streamlit** donde se ejecuta la aplicación ```app_streamlit.py```. El puerto utilizado para este servicio es el 8086.
 
-# Ejecución #
-Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
-- Digitamos ``` sudo su ``` para loguearnos como root.
-- Ingresamos la clave.
-- Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
-- Finalmente, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
-- desde la URL http://10.43.101.156:8086/ se puede acceder a la interfaz de streamlit, la cual tiene links de acceso a las URLs de los demás servicios, a los cuales se pueden acceder por separado mediante http://10.43.101.156:XXXX, donde XXXX son los puertos habilitados para cada servicio que fueron mencionados previamente.
 
 
  
