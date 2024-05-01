@@ -123,24 +123,26 @@ services:
         limits:
           cpus: 2
           memory: 500M
+
   #Jupyter configuration
-  jupyter:
-    container_name: airflow_compose_jupyter-lab
-    restart: unless-stopped
-    ports: 
-      - "8087:8888"
-    build:
-      context: .
-      dockerfile: Dockerfile_jupyter
-    depends_on:
-      - mlflow_serv 
+#  jupyter:
+#    container_name: airflow_compose_jupyter-lab
+#    restart: unless-stopped
+#    ports: 
+#      - "8087:8888"
+#    build:
+#      context: .
+#      dockerfile: Dockerfile_jupyter
+#    depends_on:
+#      - mlflow_serv 
       # airflow-webserver: 
       #  condition: service_healthy
-    volumes:
+#    volumes:
     #  - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     #  - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/scripts
     #  - ${AIRFLOW_PROJ_DIR:-.}/notebooks:/opt/airflow/notebooks
-      - $PWD:/work
+    #  - $PWD:/work
+#       - ${PROJECT_DIR}:/work
     #environment:
     #  - PYTHONPATH=/opt/airflow/
     #command: jupyter lab --port 8888 --allow-root
@@ -208,7 +210,7 @@ services:
       - "8082:3306"
     environment:
       MYSQL_ROOT_PASSWORD: airflow
-      MYSQL_DATABASE: cover_type
+      #MYSQL_DATABASE: RAW_DATA
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -221,6 +223,17 @@ services:
     tty: true        # docker run -t    
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - network1
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
+    networks:
+      - network1
 
   redis:
     image: redis:latest
@@ -424,5 +437,5 @@ volumes:
   mysql_data:
 networks:
   network1:
-      name: proyecto2_default
+      name: proyecto31_default
       external: true
