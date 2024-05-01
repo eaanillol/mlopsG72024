@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  locustmaster:
+    #image: locustio/locust
+    container_name: locustmaster
+    build: 
+      context: .
+      dockerfile: Dockerfile_locust
+    ports:
+     - "8089:8089"
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --master -H http://locustmaster:8089
+    networks:
+      - network1
+  
+  locustworker:
+    #image: locustio/locust
+    build:
+      context: .
+      dockerfile: Dockerfile_locust
+    container_name: locustworker
+    volumes:
+      - ./:/mnt/locust
+    command: -f /mnt/locust/locustfile.py --worker --master-host locustmaster
+    networks:
+      - network1
+networks:
+  network1:
+    name: proyecto2_default
+    external: true
+
+## docker compose up --build 

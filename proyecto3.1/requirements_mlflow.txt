@@ -1,0 +1,6 @@
+mlflow==2.3.0
+awscli
+boto3
+pymysql
+mysqlclient
+cryptography
