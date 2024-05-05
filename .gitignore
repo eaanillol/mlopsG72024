@@ -30,6 +30,9 @@ MANIFEST
 .venv
 .python-version
 
+.vscode
+#.minio.sys
+
 logs/*.log
 taller3/logs/scheduler/latest
 # PyInstaller
