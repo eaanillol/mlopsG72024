@@ -1,11 +1,27 @@
+# Usar imagen base de Python
 FROM python:3.9
+
+# Definir argumentos que probablemente no cambiarán frecuentemente
 ARG MLFLOW_S3_ENDPOINT_URL=http://10.43.101.156:8084
 ARG AWS_ACCESS_KEY_ID=admin
 ARG AWS_SECRET_ACCESS_KEY=supersecret
-RUN mkdir /work
+
+# Establecer el directorio de trabajo
 WORKDIR /work
-COPY . .
+
+# Instalar Jupyter y JupyterLab antes de copiar el resto del código
+# Esto asegura que cambios en el código no invaliden la caché de esta capa
 RUN pip install jupyter==1.0.0 -U && pip install jupyterlab==3.6.1
+
+# Copiar solo el archivo de requisitos primero
+# Esto permite aprovechar la caché de Docker si requirements_jupyter.txt no ha cambiado
+COPY requirements_jupyter.txt .
 RUN pip install -r requirements_jupyter.txt
-#EXPOSE 8888
-ENTRYPOINT ["jupyter", "lab","--ip=0.0.0.0","--allow-root"]
+
+# Copiar el resto del código después de instalar dependencias
+COPY . .
+
+#EXPOSE 8888 
+# Configurar el punto de entrada para iniciar Jupyter Lab
+ENTRYPOINT ["jupyter", "lab", "--ip=0.0.0.0", "--notebook-dir=/home/jovyan/work", "--allow-root"]
+

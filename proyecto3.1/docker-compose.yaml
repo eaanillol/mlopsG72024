@@ -102,10 +102,10 @@ services:
       - mi_api
 
   mi_api:
-    # build:
-    #  context: .
-    #  dockerfile: Dockerfile_api
-    image: "anloder4/proyecto2-mi_api:latest"
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    #image: "anloder4/proyecto2-mi_api:latest"
     volumes:
       - ./app:/code/app
     ports:
@@ -125,28 +125,28 @@ services:
           memory: 500M
 
   #Jupyter configuration
-#  jupyter:
-#    container_name: airflow_compose_jupyter-lab
-#    restart: unless-stopped
-#    ports: 
-#      - "8087:8888"
-#    build:
-#      context: .
-#      dockerfile: Dockerfile_jupyter
-#    depends_on:
-#      - mlflow_serv 
-      # airflow-webserver: 
-      #  condition: service_healthy
-#    volumes:
-    #  - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
-    #  - ${AIRFLOW_PROJ_DIR:-.}/scripts:/opt/airflow/scripts
-    #  - ${AIRFLOW_PROJ_DIR:-.}/notebooks:/opt/airflow/notebooks
-    #  - $PWD:/work
-#       - ${PROJECT_DIR}:/work
-    #environment:
-    #  - PYTHONPATH=/opt/airflow/
-    #command: jupyter lab --port 8888 --allow-root
-    
+  jupyter:
+    container_name: airflow_compose_jupyter-lab
+    restart: unless-stopped
+    ports: 
+      - "8087:8888"
+    build:
+      context: .
+      dockerfile: Dockerfile_jupyter
+    depends_on:
+      - mlflow_serv
+      - minio
+    environment:
+      MLFLOW_URI: "http://mlflow_serv:5000"
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret 
+    volumes:
+      - .:/home/jovyan/work
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    networks:
+      - network1
 
   mlflow_serv:
     build:
@@ -435,6 +435,8 @@ volumes:
   minio-data:
   postgres-db-volume:
   mysql_data:
+  notebooks:
+
 networks:
   network1:
       name: proyecto31_default

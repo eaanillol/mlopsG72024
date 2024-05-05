@@ -7,3 +7,4 @@ requests==2.28.2
 pandas
 imbalanced-learn
 pymysql
+xgboost
