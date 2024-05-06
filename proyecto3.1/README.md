@@ -65,7 +65,7 @@ Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Digitamos ``` sudo su ``` para loguearnos como root.
 - Ingresamos la clave.
-- Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
+- Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto3.1 ```
 - Finalmente, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
 - desde la URL http://10.43.101.156:8086/ se puede acceder a la interfaz de streamlit, la cual tiene links de acceso a las URLs de los demás servicios, a los cuales se pueden acceder por separado mediante http://10.43.101.156:XXXX, donde XXXX son los puertos habilitados para cada servicio que fueron mencionados previamente.
 
