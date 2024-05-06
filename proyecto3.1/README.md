@@ -34,7 +34,7 @@ Para poder establecer conexion con KUBERNETES, con los servicios de MySQL y MINI
 MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
 --backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:30082/mlflow
 ```
-Para poder establecer connexión con los puertos del nodo de kubernetes, se utiliza la URL de la maquina virtual ```10.43.101.156``` y se conecta al puerto establecido en para los servicios de MySQL y Minio, ```30082```  ```31000```, en el nodo de kubernetes, en el archivo -service.yaml de cada uno, como se muestra a continuación:
+Para poder establecer connexión con los puertos del nodo de kubernetes, se utiliza la URL de la maquina virtual ```10.43.101.156``` y se conecta al puerto establecido en para los servicios de MySQL y Minio, ```30082```  ```31000```, en el nodo de kubernetes, en el archivo -service.yaml de cada uno, como se definió en la variable nodePort.
 ```
   ports:
     - name: "9000"
@@ -60,6 +60,35 @@ Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios
 - Inicialmente la URL de MLFlow, al ser este un servicio externo a kubernetes, fue cambiada por ```MLFLOW_TRACKING_URI = "http://10.43.101.156:8084" ```, en donde la URL corresponde al puerto de salida de el servicio de MLFLOW configurado en Docker.
 - Para conectarse a la base de datos de MySQL, se configuro con la URL correspondiente al puerto asignado en el servicio de kubernetes ```engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/RAW_DATA')```
 
+Adicionalmente, dentro de el archivo ***Main.py***, para que la API utilizar el modelo en producción para la inferencia, se definió la funcion load_model, con la siguiente particularidad. 
+
+```
+# Filtrar para encontrar la versión en producción
+    production_versions = [mv for mv in model_versions if mv.current_stage == 'Production']
+```
+En donde se hace un barrido de las versiones del modelo disponible en airflow, y se selecciona aquel que este en stage de producción, que fue previamente asignado por medio de los DAGs de airflow, en base al siguiente criterio:
+
+```
+   all_model_versions = client.search_model_versions(filter_string)
+    best_model = None
+    best_accuracy = 0
+
+    for model in all_model_versions:
+        model_run = client.get_run(model.run_id)
+        model_accuracy = model_run.data.metrics['accuracy']
+        if model_accuracy > best_accuracy:
+            best_accuracy = model_accuracy
+            best_model = model
+
+    if best_model:
+        client.transition_model_version_stage(
+            name="model_experiment",
+            version=best_model.version,
+            stage="Production",
+            archive_existing_versions=True
+```
+
+En donde se hace un barrido de todas las versiones del modelo disponibles, se comparan los accuracy de cada uno y, aquel que tenga mejor accuracy, es enviado a producción.
 
 # Ejecución #
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
