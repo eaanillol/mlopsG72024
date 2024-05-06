@@ -1,6 +1,6 @@
 # Entorno #
 
-![Arquitectura.](./img/arquitectura.png) 
+![Arquitectura.](./img/arquitectura_3.png) 
 
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
