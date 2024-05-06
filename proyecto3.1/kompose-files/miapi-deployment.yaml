@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose-api.yaml
+    kompose.version: 1.33.0 (3ce457399)
+  labels:
+    io.kompose.service: miapi
+  name: miapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: miapi
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert -f docker-compose-api.yaml
+        kompose.version: 1.33.0 (3ce457399)
+      labels:
+        io.kompose.network/proyecto31-default: "true"
+        io.kompose.service: miapi
+    spec:
+      containers:
+        - env:
+            - name: AWS_ACCESS_KEY_ID
+              value: admin
+            - name: AWS_SECRET_ACCESS_KEY
+              value: supersecret
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: http://minio:9000
+            - name: MLFLOW_URI
+              value: http://mlflow_serv:5000
+          image: anloder4/proyecto2-mi_api:latest
+          name: miapi
+          ports:
+            - containerPort: 8000
+              hostPort: 8085
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "2"
+              memory: "524288000"
+          volumeMounts:
+            - mountPath: /code/app
+              name: miapi-claim0
+      restartPolicy: Always
+      volumes:
+        - name: miapi-claim0
+          persistentVolumeClaim:
+            claimName: miapi-claim0

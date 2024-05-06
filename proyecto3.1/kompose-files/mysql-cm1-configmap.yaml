@@ -1,0 +1,13 @@
+apiVersion: v1
+data:
+  init_db.sql: |
+    CREATE DATABASE IF NOT EXISTS RAW_DATA;
+    CREATE DATABASE IF NOT EXISTS CLEAN_DATA;
+    CREATE DATABASE IF NOT EXISTS mlflow;
+kind: ConfigMap
+metadata:
+  annotations:
+    use-subpath: "true"
+  labels:
+    io.kompose.service: mysql
+  name: mysql-cm1

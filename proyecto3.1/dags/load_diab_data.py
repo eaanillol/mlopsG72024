@@ -18,8 +18,8 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransfo
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
 
-engine = create_engine('mysql+pymysql://root:airflow@mysql:3306/RAW_DATA')
-engine_2 = create_engine('mysql+pymysql://root:airflow@mysql:3306/CLEAN_DATA')
+engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/RAW_DATA')
+engine_2 = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/CLEAN_DATA')
 
 def clean_data(data):
     # Eliminación de variables con una alta cantidad de valores nulos

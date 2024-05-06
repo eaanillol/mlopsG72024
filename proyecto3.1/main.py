@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder, FunctionTransfo
 
 app = FastAPI()
 
-MLFLOW_TRACKING_URI = "http://mlflow_serv:5000"
+MLFLOW_TRACKING_URI = "http://10.43.101.156:8084"
 MODEL_NAME = "model_experiment"
 
 # Definir el modelo de entrada
@@ -207,7 +207,7 @@ def load_model():
 @app.post("/predict")
 def predict(input: ModelInput):
 
-    engine = create_engine('mysql+pymysql://root:airflow@mysql:3306/RAW_DATA')
+    engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/RAW_DATA')
    
     try:
         model, version = load_model()
