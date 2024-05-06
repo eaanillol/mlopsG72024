@@ -48,6 +48,12 @@ Para poder establecer connexión con los puertos del nodo de kubernetes, se util
 ```
 En donde el "nodePort" es el puerto habilitado para establecer conexiones externas al nodo.
 
+## Observar la base de datos 
+
+Puede observar las bases de datos mediante el servicio Adminer, en la url ```10.43.101.156:8081```, con las siguientes credenciales:
+- Username: 10.43.101.156:30082
+- password: airflow
+  
 ## Configuración de la API
 
 Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios realizados en el archivo Main.py fueron los siguientes:
