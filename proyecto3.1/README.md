@@ -34,7 +34,7 @@ Para poder establecer conexion con KUBERNETES, con los servicios de MySQL y MINI
 MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
 --backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:30082/mlflow
 ```
-Para poder establecer connexión con los puertos del nodo de kubernetes, se utiliza la URL de la maquina virtual ```10.43.101.156``` y se conecta al puerto establecido en los servicios ```30082```  ```31000```, en sus correspondientes puertos, como se observa en el ejemplo de a continuación:
+Para poder establecer connexión con los puertos del nodo de kubernetes, se utiliza la URL de la maquina virtual ```10.43.101.156``` y se conecta al puerto establecido en para los servicios de MySQL y Minio, ```30082```  ```31000```, en el nodo de kubernetes, en el archivo -service.yaml de cada uno, como se muestra a continuación:
 ```
   ports:
     - name: "9000"
