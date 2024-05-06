@@ -60,7 +60,7 @@ Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios
 - Inicialmente la URL de MLFlow, al ser este un servicio externo a kubernetes, fue cambiada por ```MLFLOW_TRACKING_URI = "http://10.43.101.156:8084" ```, en donde la URL corresponde al puerto de salida de el servicio de MLFLOW configurado en Docker.
 - Para conectarse a la base de datos de MySQL, se configuro con la URL correspondiente al puerto asignado en el servicio de kubernetes ```engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/RAW_DATA')```
 
-Adicionalmente, dentro de el archivo ***Main.py***, para que la API utilizar el modelo en producción para la inferencia, se definió la funcion load_model, con la siguiente particularidad. 
+Adicionalmente, dentro de el archivo ***Main.py***, para que la API utilizara el modelo en producción para la inferencia, se definió la funcion load_model, con la siguiente particularidad. 
 
 ```
 # Filtrar para encontrar la versión en producción
