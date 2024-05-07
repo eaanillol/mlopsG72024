@@ -89,8 +89,46 @@ En donde se hace un barrido de las versiones del modelo disponible en airflow, y
 ```
 
 En donde se hace un barrido de todas las versiones del modelo disponibles, se comparan los accuracy de cada uno y, aquel que tenga mejor accuracy, es enviado a producción.
+# Ejecución de la Arquitectura
+A continuación mostraremos el paso a paso para la ejecución y montaje de la infraestructura del proyecto.
 
-# Ejecución #
+
+
+## Kubernetes
+Para Kubernetes usamos la implementación de Microk8s que nos permitió levantar cada uno de los nodos y pods necesarios. 
+
+Para desplegar Kubernetes primero debemos asegurarnos que el servicio de Microk8s esté funcionando:
+```sudo microk8s status ```
+
+![Arquitectura.](./img/microk8s_status.png) 
+
+Como podemos ver el servicio está corriendo correctamente. En caso tal, el servicio se encuentre apagado ejecutamos:
+```sudo microk8s start ```
+
+Luego vamos a la ruta donde tenemos todos los archivos del proyecto 3:
+
+``` cd /home/estudiante/repository/mlopsG72024/proyecto3.1 ```
+
+Para facilitar el uso de algunos comandos usados frecuentemente, se crearon algunos shell files como:
+- ```  start-microk8s-dashboard.sh ```: Inicia el dashboard de Kubernetes en el puerto 8089 o cualquier otro puerto que se le indique.
+- ``` get-current-token-microk8s.sh ```: Obtiene el token de acceso para el dashboard.
+
+Ahora procedemos a ejecutar el comando para ver el dashboard desde fuera de la máquina virtual:
+```sudo sh  start-microk8s-dashboard.sh ```
+
+![Arquitectura.](./img/microk8s_start_dashboard.png) 
+
+Ingresando por https a la URL https://10.43.101.156:8089:
+
+![Arquitectura.](./img/kubernetes_login.png) 
+
+Para obtener el token de acceso ejecutamos ```sudo sh  get-current-token-microk8s.sh ```. Por consiguiente, copiamos y pegamos el valor obtenido para loguearnos a la página de Kubernetes:
+
+![Arquitectura.](./img/kubernetes_dashboard.png) 
+
+Como podemos ver, tenemos el nodo con los pods corriendo correctamente.
+
+## Docker Compose
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Digitamos ``` sudo su ``` para loguearnos como root.
 - Ingresamos la clave.
