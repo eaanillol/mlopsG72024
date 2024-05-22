@@ -1,0 +1,10 @@
+.venv/
+venv/
+_pycache_/
+#*.joblib
+*.log
+*.data
+*.pkl
+.ipynp_checkpoints/
+.vscode/
+.minio.sys/
