@@ -1,129 +1,138 @@
 # Entorno #
 
-![Arquitectura.](./img/arquitectura.png) 
+![Arquitectura.](./img/arquitectura_3.png) 
 
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
-- Descargar los datos expuestos en la Data API y almacenarlos en la base de datos Mysql. Cabe indicar que la API encargada de entregar los datos se actualiza cada 5 minutos, por lo que el DAG de solucitud de datos tiene un retraso de 6 minutos para dar tiempo a la API a cambiar los datos aleatorios. Esto, en caso de que existan varias ejecuciones en la cola y así evitar que puedan ejecutarse simultaneamente, debido a que el DAG se ejecuta una vez al dia al tener el argumento catchup = True.
-- Entrenar el modelo SVM con los datos extraidos,  registrar los experimentos con su respectiva metadata en mlflow y Mysql, y almacenar los modelos generados en minio. El entrenamiento del modelo cuenta con una etapa de random search de 5 iteraciones, por lo que la ejecución del mismo puede tomar varios minutos. 
-
-Mlflow organiza el cliclo de vida de los modelos de machine learning mediante el registro de metadata producto del entrenamiento. La metadata incluye las métricas, versiones, expermientos y parámetros. Adicionalmente administra y crea los objetos de ejecución y configuración de los modelos creados.
-
-Minio funciona como repositorio para los modelos y archivos de configuración. 
-
-Para almacenar los datos descargados desde Airflow y metricas que se obtienen del entrenamiento de los modelos usamos el sistema de gestión Mysql, en el cual 2 bases de datos fueron configuradas:
-- **mlflow**: Nombre de la base de datos de mlflow para almacenamiento de metadatos.
-- **cover_type**: Nombre la base de datos que tiene el dataset solicitado a la api externa, para entrenar el modelo.
-
-Por último se agregó una interfaz gráfica por medio de streamlit, para que el usuario ingrese al modelo y sus componentes(airflow, minio, mlflow, fastapi):
-
-![Streamlit.](./img/streamlit.png) 
-
-Streamlit se encuentra disponible en la url: 
-http://10.43.101.156:8086/
-# Configuración de Componentes #
-
-Los siguientes servicios se despliegan a través del archivo ```docker-compose.yaml```.
-## Airflow ##
-Toda la configuración se encuentra definida en el archivo compose y se realizaron los siguientes cambios:
-
-- En la sección **environment** se adicionaron las credenciales de minio, para establecer la conexión entre Airflow y el repositorio, y así poder almacenar los modelos entrenados dentro de los dags:
-    ```
-    MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-    AWS_ACCESS_KEY_ID: admin
-    AWS_SECRET_ACCESS_KEY: supersecret
-    ```
-## Mlflow ##
-Se creó un servicio en el docker compose de la siguiente manera:
+- Descargar los datos de el servidor de las bases de datos ```Diabetes 130-US Hospitals for Years 1999-2008```, mediante la libreria ```ucimlrepo```. en donde se dividió el dataset en training, validation y test. Con la particularidad de que el dataset test se subió a la base de datos MySQL en batches de 15000.
 ```
-mlflow_serv:
-    build:
-      context: .
-      dockerfile: Dockerfile_mlflow
-    ports:
-      - "8084:5000" 
-    command: >
-      mlflow server
-      --backend-store-uri mysql+pymysql://root:airflow@mysql:3306/mlflow
-      --default-artifact-root s3://mlflows3
-      --host 0.0.0.0
-      --port 5000
-      --serve-artifacts
-    depends_on:
-      - mysql
-      - minio
-    environment:
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-      AWS_ACCESS_KEY_ID: admin
-      AWS_SECRET_ACCESS_KEY: supersecret
- ```
-El servicio cuenta con su propio docker file(Dockerfile_mlfow), el cual instala las librerias necesarias para mlflow.
+batch_size = 15000
+    num_batches = 5
+    indices = np.arange(len(X_train))
 
- Se habilitó el puerto 8084 para acceder a la interfaz, se estableció conexión para el almacenamiento del backend con Mysql y minio, y con esto almacenar los objetos en el bucket mlflows3.
+    # Calcular el nuevo índice
+    new_index = last_index + batch_size
+    if new_index >= len(indices):
+        new_index = len(indices)
+        batch_count += 1  # Incrementar el contador de batch
 
-## Minio ##
-Configuración minio:
- ```
-minio:
-    container_name: Minio
-    command: server /data --console-address ":9001"
-    environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=supersecret
-    image: quay.io/minio/minio:latest
-    ports:
-      - '9000:9000'
-      - '8083:9001'
-    volumes:
-      - ./minio:/data
-    restart: unless-stopped
- ```
-Como podemos ver le asignamos unas credenciales para el acceso al servicio, el cual responde por dos puertos:
-- 9000 para la consola
-- 8083 para la interfaz gráfica
-- Las credenciales para acceder al repositorio son: USUARIO: admin CONTRASEÑA: supersecret
-
-## Fastapi ##
- ```
-mi_api:
-    build:
-      context: .
-      dockerfile: Dockerfile_api
-    volumes:
-      - ./app:/code/app
-    ports:
-      - "8085:8000"
-    depends_on:
-      - mlflow_serv
-      - minio
-    environment:
-      MLFLOW_URI: "http://mlflow_serv:5000"
-      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
-      AWS_ACCESS_KEY_ID: admin
-      AWS_SECRET_ACCESS_KEY: supersecret
-  ```
-Para Fastapi creamos una imagen personalizada que responde por el puerto 8085. Adicionamos variables de entorno con datos de acceso para minio y mlflow. Para acceder a la documentación, se habilitó el puerto 8085.
-
-Esta imagen también cuenta con su propio dockerfile(Dockerfile_api), que se encarga de ejecutar la aplicación ```main.py``` en uvicorn.
-
-## Streamlit ##
+    # Extraer y preparar el batch de datos
+    X_batch = X_train.iloc[last_index:new_index]
+    y_batch = y_train.iloc[last_index:new_index]
+    batch_data = pd.concat([X_batch,y_batch], axis=1)
+    clean_batch_data = clean_data(batch_data.copy())
+    # Guardar el nuevo batch en la base de datos
+    batch_data.to_sql('diabetes_data', con=engine, if_exists='append', index=False)
+    clean_batch_data.to_sql('diabetes_data', con=engine_2, if_exists='append', index=False)
 ```
-streamlit_app:
-    build:
-      context: .
-      dockerfile: Dockerfile_streamlit
-    ports:
-      - "8086:8501"
-    depends_on:
-      - mi_api
-```
-Este servicio también tiene una configuración adicional en el dockerfile **Dockerfile_streamlit** donde se ejecuta la aplicación ```app_streamlit.py```. El puerto utilizado para este servicio es el 8086.
+Para lograr indicar a la función el ultimo indice cargado en la iteración anterior, se guardo este en una tabla adicional en la base de datos ***RAW_DATA***.
 
-# Ejecución #
+## Conexión con KUBERNETES
+
+Para poder establecer conexion con KUBERNETES, con los servicios de MySQL y MINIO, se modificaron las URL de cada servicio dentro de docker-compose, de la siguiente forma: 
+```
+MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
+--backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:30082/mlflow
+```
+Para poder establecer connexión con los puertos del nodo de kubernetes, se utiliza la URL de la maquina virtual ```10.43.101.156``` y se conecta al puerto establecido en para los servicios de MySQL y Minio, ```30082```  ```31000```, en el nodo de kubernetes, en el archivo -service.yaml de cada uno, como se definió en la variable nodePort.
+```
+  ports:
+    - name: "9000"
+      port: 9000
+      nodePort: 31000
+      targetPort: 9000
+    - name: "8083"
+      port: 8083
+      targetPort: 9001
+      nodePort: 31001
+```
+En donde el "nodePort" es el puerto habilitado para establecer conexiones externas al nodo.
+
+## Observar la base de datos MySQL 
+
+Puede observar las bases de datos mediante el servicio Adminer, en la url ```10.43.101.156:8081```, con las siguientes credenciales:
+- Username: 10.43.101.156:30082
+- password: airflow
+  
+## Configuración de la API
+
+Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios realizados en el archivo Main.py fueron los siguientes:
+- Inicialmente la URL de MLFlow, al ser este un servicio externo a kubernetes, fue cambiada por ```MLFLOW_TRACKING_URI = "http://10.43.101.156:8084" ```, en donde la URL corresponde al puerto de salida de el servicio de MLFLOW configurado en Docker.
+- Para conectarse a la base de datos de MySQL, se configuro con la URL correspondiente al puerto asignado en el servicio de kubernetes ```engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/RAW_DATA')```
+
+Adicionalmente, dentro de el archivo ***Main.py***, para que la API utilizara el modelo en producción para la inferencia, se definió la funcion load_model, con la siguiente particularidad. 
+
+```
+# Filtrar para encontrar la versión en producción
+    production_versions = [mv for mv in model_versions if mv.current_stage == 'Production']
+```
+En donde se hace un barrido de las versiones del modelo disponible en airflow, y se selecciona aquel que este en stage de producción, que fue previamente asignado por medio de los DAGs de airflow, en base al siguiente criterio:
+
+```
+   all_model_versions = client.search_model_versions(filter_string)
+    best_model = None
+    best_accuracy = 0
+
+    for model in all_model_versions:
+        model_run = client.get_run(model.run_id)
+        model_accuracy = model_run.data.metrics['accuracy']
+        if model_accuracy > best_accuracy:
+            best_accuracy = model_accuracy
+            best_model = model
+
+    if best_model:
+        client.transition_model_version_stage(
+            name="model_experiment",
+            version=best_model.version,
+            stage="Production",
+            archive_existing_versions=True
+```
+
+En donde se hace un barrido de todas las versiones del modelo disponibles, se comparan los accuracy de cada uno y, aquel que tenga mejor accuracy, es enviado a producción.
+# Ejecución de la Arquitectura
+A continuación mostraremos el paso a paso para la ejecución y montaje de la infraestructura del proyecto.
+
+
+
+## Kubernetes
+Para Kubernetes usamos la implementación de Microk8s que nos permitió levantar cada uno de los nodos y pods necesarios. 
+
+Para desplegar Kubernetes primero debemos asegurarnos que el servicio de Microk8s esté funcionando:
+```sudo microk8s status ```
+
+![Arquitectura.](./img/microk8s_status.png) 
+
+Como podemos ver el servicio está corriendo correctamente. En caso tal, el servicio se encuentre apagado ejecutamos:
+```sudo microk8s start ```
+
+Luego vamos a la ruta donde tenemos todos los archivos del proyecto 3:
+
+``` cd /home/estudiante/repository/mlopsG72024/proyecto3.1 ```
+
+Para facilitar el uso de algunos comandos usados frecuentemente, se crearon algunos shell files como:
+- ```  start-microk8s-dashboard.sh ```: Inicia el dashboard de Kubernetes en el puerto 8089 o cualquier otro puerto que se le indique.
+- ``` get-current-token-microk8s.sh ```: Obtiene el token de acceso para el dashboard.
+
+Ahora procedemos a ejecutar el comando para ver el dashboard desde fuera de la máquina virtual:
+```sudo sh  start-microk8s-dashboard.sh ```
+
+![Arquitectura.](./img/microk8s_start_dashboard.png) 
+
+Ingresando por https a la URL https://10.43.101.156:8089:
+
+![Arquitectura.](./img/kubernetes_login.png) 
+
+Para obtener el token de acceso ejecutamos ```sudo sh  get-current-token-microk8s.sh ```. Por consiguiente, copiamos y pegamos el valor obtenido para loguearnos a la página de Kubernetes:
+
+![Arquitectura.](./img/kubernetes_dashboard.png) 
+
+Como podemos ver, tenemos el nodo con los pods corriendo correctamente.
+
+## Docker Compose
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Digitamos ``` sudo su ``` para loguearnos como root.
 - Ingresamos la clave.
-- Desde la consola, vamos al directorio ``` /home/estudiante/mlopsG72024/proyecto2 ```
+- Desde la consola, vamos al directorio ``` /home/estudiante/repository/mlopsG72024/proyecto3.1 ```
 - Finalmente, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
 - desde la URL http://10.43.101.156:8086/ se puede acceder a la interfaz de streamlit, la cual tiene links de acceso a las URLs de los demás servicios, a los cuales se pueden acceder por separado mediante http://10.43.101.156:XXXX, donde XXXX son los puertos habilitados para cada servicio que fueron mencionados previamente.
 
