@@ -5,8 +5,8 @@
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
 - Descargar los datos de el servidor de la API, teniendo en cuenta las siguiente peculiaridades.
-1. existe un numero limitado de peticiones. Una vez se alcanza el limite, la API retornara el siguiente mensaje: ```Ya se recolectó toda la información minima necesaria```
-2. Existe un metodo de reiniciar las peticiones y adquirir los datos desde el batch 1.
+    1. existe un numero limitado de peticiones. Una vez se alcanza el limite, la API retornara el siguiente mensaje: ```Ya se recolectó toda la información minima necesaria```
+   2. Existe un metodo de reiniciar las peticiones y adquirir los datos desde el batch 1.
 ```
 if "detail" in data:
         if data["detail"] == "Ya se recolectó toda la información minima necesaria":
