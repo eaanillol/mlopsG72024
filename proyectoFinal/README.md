@@ -4,7 +4,9 @@
 
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
-- Descargar los datos de el servidor de las bases de datos ```Diabetes 130-US Hospitals for Years 1999-2008```, mediante la libreria ```ucimlrepo```. en donde se dividió el dataset en training, validation y test. Con la particularidad de que el dataset test se subió a la base de datos MySQL en batches de 15000.
+- Descargar los datos de el servidor de la API, teniendo en cuenta las siguiente peculiaridades.
+      - existe un numero limitado de peticiones. Una vez se alcanza el limite, la API retornara el siguiente mensaje: ```Ya se recolectó toda la información minima necesaria```
+      - 
 ```
 batch_size = 15000
     num_batches = 5
