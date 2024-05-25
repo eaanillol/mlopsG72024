@@ -48,17 +48,30 @@ def compare_batch(prev_data,new_data):
     stat_df["retrain"] = decision
     return stat_df
 ```
-Mediante esta función, se extraer diferentes metricas de el dataset previo y el actual (media, desv. estandar, cuartil 50 y 75) y, si la diferencia entre estas 2 tablas es mayor a 15% en cualquiera de estas variables, se entrena una nueva version del modelo. Se eligieron estas variables dado que, por ejemplo, si el la diferencia del cuartil 50% entre las dos tablas es significativa, esto indica que el valor medio de ambos grupos es diferente, por lo que la distribución de los datos cambió drasticamente. El registro de estas metricas y el resultado de las comparaciones queda almacenado en una tabla en MySQL.
+Mediante esta función, se extraen diferentes metricas de el dataset previo y el actual (media, desv. estandar, cuartil 50 y 75) y, si la diferencia entre estas 2 tablas es mayor a 15% en cualquiera de estas variables, se entrena una nueva version del modelo. Se eligieron estas variables dado que, por ejemplo, si el la diferencia del cuartil 50% entre las dos tablas es significativa, esto indica que el valor medio de ambos grupos es diferente, por lo que la distribución de los datos cambió drasticamente. El registro de estas metricas y el resultado de las comparaciones queda almacenado en una tabla en MySQL.
 - Realizar o no el entrenamiento del modelo en base a la variable **retrain** obtenida de la función ```compare_batch```.
-##GITHUB Actions
+# SHAP
+
+Para interpretar el modelo, se implemento la libreria SHAP y el servicio de Jupyter notebook, en donde se pre-establecieron una serie de lineas de codigo para cargar el mas reciente modelo en producción y generar las diferentes graficas para interpretación.Comp tal, hubieron 2 versiones del modelo que entraron a fase de producción, la version 1 y 16, de las cuales se obtuvieron las siguientes metricas:
+
+![Arquitectura.](./img/SHAP_M1-1.png) 
+![Arquitectura.](./img/SHAP_M2-1.png) 
+
+En la version 1, se observa que la variable que tenia mayor infuencia era la de baño, en donde, a mayor cantidad de baños, se observaba una mayor variación positiva del precio del inmueble. En la version 16, en donde habian mayor cantidad de datos para entrenar, se observó que la variable estado pasó a ser la de mayor importancia, seguida por la del tamaño del inmueble, como se muestra a continuación:
+
+![Arquitectura.](./img/SHAP_M1-2.png)
+![Arquitectura.](./img/SHAP_M2-2.png)
+
+Las diferencias en los resultados de los dos modelos  (al observar los diagramas de descomposición de valores ) probablemente se deban al volumen de datos con que cada uno fue entrenado. Un modelo entrenado con más datos tiende a generalizar mejor y ser más robusto, lo que se refleja en cómo evalúa las características como el tamaño del lote y la ubicación. Esto puede hacer que uno de los modelos sea más sensible a ciertas características debido a una mayor exposición a variaciones en los datos. Por otro lado, el entrenamiento con un conjunto de datos más limitado podría llevar a un modelo a sobrevalorar ciertas características que aparecen con más frecuencia en ese conjunto específico, afectando la precisión de sus predicciones.
+
+![Arquitectura.](./img/SHAP_M1-3.png)
+![Arquitectura.](./img/SHAP_M2-3.png)
+
+#GITHUB Actions
  
-## Configuración de la API
+# Configuración de la API
 
-Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios realizados en el archivo Main.py fueron los siguientes:
-- Inicialmente la URL de MLFlow, al ser este un servicio externo a kubernetes, fue cambiada por ```MLFLOW_TRACKING_URI = "http://10.43.101.156:8084" ```, en donde la URL corresponde al puerto de salida de el servicio de MLFLOW configurado en Docker.
-- Para conectarse a la base de datos de MySQL, se configuro con la URL correspondiente al puerto asignado en el servicio de kubernetes ```engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:30082/RAW_DATA')```
-
-Adicionalmente, dentro de el archivo ***Main.py***, para que la API utilizara el modelo en producción para la inferencia, se definió la funcion load_model, con la siguiente particularidad. 
+Dentro de el archivo ***Main.py***, para que la API utilizara el modelo en producción para la inferencia, se definió la funcion load_model, con la siguiente particularidad. 
 
 ```
 # Filtrar para encontrar la versión en producción
@@ -85,52 +98,28 @@ En donde se hace un barrido de las versiones del modelo disponible en airflow, y
             stage="Production",
             archive_existing_versions=True
 ```
+Finalmente, para guardar todos los datos ingresados por usuario en cada inferencia, se creó la tabla **new_real_state** en la base de datos RAW data.
+```
+engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:8082/RAW_DATA')
+   
+    try:
+        model, version = load_model()
+        columns = [" brokered_by", "status", "price", "bed", "bath", "acre_lot", 
+		   "street", "city", "state", "zip_code", "house_size", "prev_sold_date"]
 
-En donde se hace un barrido de todas las versiones del modelo disponibles, se comparan los accuracy de cada uno y, aquel que tenga mejor accuracy, es enviado a producción.
+        # Convertir la entrada a dataframe de pandas, guardar datos en MySQL y limpiar los datos
+        input_df = pd.DataFrame([input.dict()],columns = columns)
+        input_df.to_sql('new_real_estate', con=engine, if_exists='append', index=False)
+```
+
 # Ejecución de la Arquitectura
 A continuación mostraremos el paso a paso para la ejecución y montaje de la infraestructura del proyecto.
-
-
-
-## Kubernetes
-Para Kubernetes usamos la implementación de Microk8s que nos permitió levantar cada uno de los nodos y pods necesarios. 
-
-Para desplegar Kubernetes primero debemos asegurarnos que el servicio de Microk8s esté funcionando:
-```sudo microk8s status ```
-
-![Arquitectura.](./img/microk8s_status.png) 
-
-Como podemos ver el servicio está corriendo correctamente. En caso tal, el servicio se encuentre apagado ejecutamos:
-```sudo microk8s start ```
-
-Luego vamos a la ruta donde tenemos todos los archivos del proyecto 3:
-
-``` cd /home/estudiante/repository/mlopsG72024/proyecto3.1 ```
-
-Para facilitar el uso de algunos comandos usados frecuentemente, se crearon algunos shell files como:
-- ```  start-microk8s-dashboard.sh ```: Inicia el dashboard de Kubernetes en el puerto 8089 o cualquier otro puerto que se le indique.
-- ``` get-current-token-microk8s.sh ```: Obtiene el token de acceso para el dashboard.
-
-Ahora procedemos a ejecutar el comando para ver el dashboard desde fuera de la máquina virtual:
-```sudo sh  start-microk8s-dashboard.sh ```
-
-![Arquitectura.](./img/microk8s_start_dashboard.png) 
-
-Ingresando por https a la URL https://10.43.101.156:8089:
-
-![Arquitectura.](./img/kubernetes_login.png) 
-
-Para obtener el token de acceso ejecutamos ```sudo sh  get-current-token-microk8s.sh ```. Por consiguiente, copiamos y pegamos el valor obtenido para loguearnos a la página de Kubernetes:
-
-![Arquitectura.](./img/kubernetes_dashboard.png) 
-
-Como podemos ver, tenemos el nodo con los pods corriendo correctamente.
 
 ## Docker Compose
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
 - Digitamos ``` sudo su ``` para loguearnos como root.
 - Ingresamos la clave.
-- Desde la consola, vamos al directorio ``` /home/estudiante/repository/mlopsG72024/proyecto3.1 ```
+- Desde la consola, vamos al directorio ``` /home/estudiante/repository/mlopsG72024/proyectoFinal ```
 - Finalmente, estando en la carpeta proyecto2 ejecutamos ``` docker compose up ```.
 - desde la URL http://10.43.101.156:8086/ se puede acceder a la interfaz de streamlit, la cual tiene links de acceso a las URLs de los demás servicios, a los cuales se pueden acceder por separado mediante http://10.43.101.156:XXXX, donde XXXX son los puertos habilitados para cada servicio que fueron mencionados previamente.
 
