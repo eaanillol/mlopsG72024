@@ -7,18 +7,18 @@ Inicialmente Airflow se encargará de ejecutar los DAGs para:
 - Descargar los datos de el servidor de la API, teniendo en cuenta las siguiente peculiaridades.
     1. existe un numero limitado de peticiones. Una vez se alcanza el limite, la API retornara el siguiente mensaje: ```Ya se recolectó toda la información minima necesaria```
    2. Existe un metodo de reiniciar las peticiones y adquirir los datos desde el batch 1.
-```
-if "detail" in data:
-        if data["detail"] == "Ya se recolectó toda la información minima necesaria":
-            parent_directory = 'http://10.43.101.149:80/restart_data_generation?group_number=7'
-            response = requests.get(parent_directory)
-            parent_directory = 'http://10.43.101.149:80/data?group_number=7'
-            response = requests.get(parent_directory)
-            clear_table(engine, "real_estate")
-            clear_table(engine_2, "real_estate")     
-            data = response.json()    
-            print("datos",data)
-```
+    ```
+    if "detail" in data:
+            if data["detail"] == "Ya se recolectó toda la información minima necesaria":
+                parent_directory = 'http://10.43.101.149:80/restart_data_generation?group_number=7'
+                response = requests.get(parent_directory)
+                parent_directory = 'http://10.43.101.149:80/data?group_number=7'
+                response = requests.get(parent_directory)
+                clear_table(engine, "real_estate")
+                clear_table(engine_2, "real_estate")     
+                data = response.json()    
+                print("datos",data)
+    ```
 Mediante este codigo, se hace una revision de los datos retornados por la API y, si se recolectó toda la infomacion necesaria, se realizan 2 solicitudes adicionales, la primera, para reiniciar el conteo y la segunda, para obtener el primer batch. Posteriormente se eliminan todos los datos de las tablas para almacenar el primer batch.
 
 - Comparar los datos de el batch previo y el batch actual, para determinar si la diferencia entre los datos es significativa y vale la pena entrenar una nueva version del modelo.
