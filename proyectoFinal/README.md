@@ -5,57 +5,53 @@
 Inicialmente Airflow se encargará de ejecutar los DAGs para:
 
 - Descargar los datos de el servidor de la API, teniendo en cuenta las siguiente peculiaridades.
-      - existe un numero limitado de peticiones. Una vez se alcanza el limite, la API retornara el siguiente mensaje: ```Ya se recolectó toda la información minima necesaria```
-      - 
+1. existe un numero limitado de peticiones. Una vez se alcanza el limite, la API retornara el siguiente mensaje: ```Ya se recolectó toda la información minima necesaria```
+2. Existe un metodo de reiniciar las peticiones y adquirir los datos desde el batch 1.
 ```
-batch_size = 15000
-    num_batches = 5
-    indices = np.arange(len(X_train))
-
-    # Calcular el nuevo índice
-    new_index = last_index + batch_size
-    if new_index >= len(indices):
-        new_index = len(indices)
-        batch_count += 1  # Incrementar el contador de batch
-
-    # Extraer y preparar el batch de datos
-    X_batch = X_train.iloc[last_index:new_index]
-    y_batch = y_train.iloc[last_index:new_index]
-    batch_data = pd.concat([X_batch,y_batch], axis=1)
-    clean_batch_data = clean_data(batch_data.copy())
-    # Guardar el nuevo batch en la base de datos
-    batch_data.to_sql('diabetes_data', con=engine, if_exists='append', index=False)
-    clean_batch_data.to_sql('diabetes_data', con=engine_2, if_exists='append', index=False)
+if "detail" in data:
+        if data["detail"] == "Ya se recolectó toda la información minima necesaria":
+            parent_directory = 'http://10.43.101.149:80/restart_data_generation?group_number=7'
+            response = requests.get(parent_directory)
+            parent_directory = 'http://10.43.101.149:80/data?group_number=7'
+            response = requests.get(parent_directory)
+            clear_table(engine, "real_estate")
+            clear_table(engine_2, "real_estate")     
+            data = response.json()    
+            print("datos",data)
 ```
-Para lograr indicar a la función el ultimo indice cargado en la iteración anterior, se guardo este en una tabla adicional en la base de datos ***RAW_DATA***.
+Mediante este codigo, se hace una revision de los datos retornados por la API y, si se recolectó toda la infomacion necesaria, se realizan 2 solicitudes adicionales, la primera, para reiniciar el conteo y la segunda, para obtener el primer batch. Posteriormente se eliminan todos los datos de las tablas para almacenar el primer batch.
 
-## Conexión con KUBERNETES
-
-Para poder establecer conexion con KUBERNETES, con los servicios de MySQL y MINIO, se modificaron las URL de cada servicio dentro de docker-compose, de la siguiente forma: 
+- Comparar los datos de el batch previo y el batch actual, para determinar si la diferencia entre los datos es significativa y vale la pena entrenar una nueva version del modelo.
 ```
-MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
---backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:30082/mlflow
+def compare_batch(prev_data,new_data):
+    stats_prev = prev_data.describe().drop(["zip_code","street"],axis=1)
+    stats_combined = new_data.describe().drop(["zip_code","street"],axis=1)
+    decision = False
+    # Umbrales de cambio aceptables para cada estadística
+    thresholds = {
+        'mean': 0.15,  # 15% de cambio
+        'std': 0.15,   # 15% de cambio
+        '50%': 0.15,  # 15% de cambio
+        '75%': 0.15   # 15% de cambio
+                }
+    columns = []
+    values = []
+    for stat in ['mean', 'std', '50%', '75%']:
+        change = abs((stats_combined.loc[stat] - stats_prev.loc[stat]) / stats_prev.loc[stat])
+        for i in range(0,len(change)):
+            title = stat.replace("%","")
+            columns.append(change.index[i]+"_" + title)
+            values.append(change[i])
+        if any(change > thresholds[stat]):
+            decision = True
+    stat_df = pd.DataFrame([values], columns = columns)
+    stat_df["retrain"] = decision
+    return stat_df
 ```
-Para poder establecer connexión con los puertos del nodo de kubernetes, se utiliza la URL de la maquina virtual ```10.43.101.156``` y se conecta al puerto establecido en para los servicios de MySQL y Minio, ```30082```  ```31000```, en el nodo de kubernetes, en el archivo -service.yaml de cada uno, como se definió en la variable nodePort.
-```
-  ports:
-    - name: "9000"
-      port: 9000
-      nodePort: 31000
-      targetPort: 9000
-    - name: "8083"
-      port: 8083
-      targetPort: 9001
-      nodePort: 31001
-```
-En donde el "nodePort" es el puerto habilitado para establecer conexiones externas al nodo.
-
-## Observar la base de datos MySQL 
-
-Puede observar las bases de datos mediante el servicio Adminer, en la url ```10.43.101.156:8081```, con las siguientes credenciales:
-- Username: 10.43.101.156:30082
-- password: airflow
-  
+Mediante esta función, se extraer diferentes metricas de el dataset previo y el actual (media, desv. estandar, cuartil 50 y 75) y, si la diferencia entre estas 2 tablas es mayor a 15% en cualquiera de estas variables, se entrena una nueva version del modelo. Se eligieron estas variables dado que, por ejemplo, si el la diferencia del cuartil 50% entre las dos tablas es significativa, esto indica que el valor medio de ambos grupos es diferente, por lo que la distribución de los datos cambió drasticamente. El registro de estas metricas y el resultado de las comparaciones queda almacenado en una tabla en MySQL.
+- Realizar o no el entrenamiento del modelo en base a la variable **retrain** obtenida de la función ```compare_batch```.
+##GITHUB Actions
+ 
 ## Configuración de la API
 
 Dado que el servicio de FASTAPI fue habilitado dentro de Kubernetes, los cambios realizados en el archivo Main.py fueron los siguientes:
