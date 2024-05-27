@@ -29,7 +29,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          file: ./proyectoFinal/Dockerfile
+          file: ./proyectoFinal/Dockerfile_api
           tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mi_api:latest
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
