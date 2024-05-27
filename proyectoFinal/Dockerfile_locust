@@ -1,5 +1,0 @@
-FROM locustio/locust
-COPY ./requirements_locust.txt /requirements_locust.txt
-RUN pip3 install --upgrade pip
-RUN pip3 install -r /requirements_locust.txt
-COPY ./locustfile.py locustfile.py
