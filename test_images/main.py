@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 
 app = FastAPI()
 
+print("Started")
+
 @app.post("/test")
 def test():
     return {
