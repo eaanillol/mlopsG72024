@@ -49,5 +49,11 @@ jobs:
           push: true
           file: ./proyectoFinal/Dockerfile_mlflow
           tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mlflow_serv:latest
+      - name: Build and push Airflow MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-airflow:latest
       - run: echo "🍏 This job's status is ${{ job.status }}."
 

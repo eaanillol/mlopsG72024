@@ -18,7 +18,7 @@ USER airflow
 #WORKDIR /work
 
 # Copiar el archivo requirements.txt al contenedor
-COPY requirements.txt /work/requirements.txt
+COPY ./proyectoFinal/requirements.txt /work/requirements.txt
 
 # Cambiar de nuevo al usuario airflow antes de instalar las dependencias
 #USER airflow
