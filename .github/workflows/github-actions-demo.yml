@@ -25,12 +25,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-      - name: Build and push
+      - name: Build and push API MLOPs
         uses: docker/build-push-action@v5
         with:
           push: true
-          file: ./test_images/Dockerfile
-          tags: ${{ secrets.DOCKERHUB_TAG }}/test-gh:latest
+          file: ./proyectoFinal/Dockerfile
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mi_api:latest
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
