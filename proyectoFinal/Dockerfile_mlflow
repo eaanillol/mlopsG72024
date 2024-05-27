@@ -1,5 +1,5 @@
 FROM python:3.9
-COPY ./requirements_mlflow.txt /requirements_mlflow.txt
+COPY ./proyectoFinal/requirements_mlflow.txt /requirements_mlflow.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r /requirements_mlflow.txt
 

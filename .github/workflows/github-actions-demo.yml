@@ -43,6 +43,11 @@ jobs:
           push: true
           file: ./proyectoFinal/Dockerfile_jupyter
           tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-jupyter:latest
-      
+      - name: Build and push MLFLOW MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_mlflow
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mlflow_serv:latest
       - run: echo "🍏 This job's status is ${{ job.status }}."
 
