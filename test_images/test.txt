@@ -1,0 +1,1 @@
+#Este archivo de prueba, cada vez que se  modifique se creará una imagen nueva.
