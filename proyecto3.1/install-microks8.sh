@@ -7,7 +7,6 @@ sleep 1
 echo "Configuring service and dashboard"
 sudo microk8s status --wait-ready
 microk8s kubectl get all --all-namespaces
-sudo microk8s enable dashboard
 
 
 sleep 1
