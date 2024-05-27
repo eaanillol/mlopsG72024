@@ -15,7 +15,7 @@ RUN pip install jupyter==1.0.0 -U && pip install jupyterlab==3.6.1
 
 # Copiar solo el archivo de requisitos primero
 # Esto permite aprovechar la caché de Docker si requirements_jupyter.txt no ha cambiado
-COPY requirements_jupyter.txt .
+COPY ./proyectoFinal/requirements_jupyter.txt .
 RUN pip install -r requirements_jupyter.txt
 
 # Copiar el resto del código después de instalar dependencias

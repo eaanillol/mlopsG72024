@@ -31,6 +31,18 @@ jobs:
           push: true
           file: ./proyectoFinal/Dockerfile_api
           tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mi_api:latest
+      - name: Build and push Streamlit MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_streamlit
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-streamlit_app:latest
+      - name: Build and push Jupyter MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_jupyter
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-jupyter:latest
       
       - run: echo "🍏 This job's status is ${{ job.status }}."
 

@@ -5,8 +5,8 @@ FROM python:3.9
 WORKDIR /app
 
 # Copiar los archivos requeridos al contenedor
-COPY requirements_streamlit.txt ./
-COPY app_streamlit.py ./
+COPY ./proyectoFinal/requirements_streamlit.txt ./
+COPY ./proyectoFinal/app_streamlit.py ./
 
 # Instalar las dependencias
 RUN pip install -r requirements_streamlit.txt
