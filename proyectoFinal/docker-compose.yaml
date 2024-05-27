@@ -54,7 +54,7 @@ x-airflow-common:
   build: .
   environment:
     &airflow-common-env
-    MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
+    MLFLOW_S3_ENDPOINT_URL: http://minio:9000
     AWS_ACCESS_KEY_ID: admin
     AWS_SECRET_ACCESS_KEY: supersecret
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
@@ -87,8 +87,8 @@ x-airflow-common:
       condition: service_healthy
     postgres:
       condition: service_healthy
-#    minio:
-#      condition: service_started
+    minio:
+      condition: service_started
 
 services: 
 
@@ -98,31 +98,26 @@ services:
       dockerfile: Dockerfile_streamlit
     ports:
       - "8086:8501"
-#    depends_on:
-#      - mi_api
+    depends_on:
+      - mi_api
 
-#  mi_api:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile_api
-#    image: "anloder4/proyecto2-mi_api:latest"
-#    volumes:
-#      - ./app:/code/app
-#    ports:
-#      - "8085:8000"
-#    depends_on:
-#      - mlflow_serv
-#      - minio
-#    environment:
-#      MLFLOW_URI: "http://mlflow_serv:5000"
-#      MLFLOW_S3_ENDPOINT_URL:  http://10.43.101.156:31000
-#      AWS_ACCESS_KEY_ID: admin
-#      AWS_SECRET_ACCESS_KEY: supersecret
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: 2
-#          memory: 500M
+  mi_api:
+    build:
+      context: .
+      dockerfile: Dockerfile_api
+    #image: "anloder4/proyecto2-mi_api:latest"
+    volumes:
+      - ./app:/code/app
+    ports:
+      - "8085:8000"
+    depends_on:
+      - mlflow_serv
+      - minio
+    environment:
+      MLFLOW_URI: "http://mlflow_serv:5000"
+      MLFLOW_S3_ENDPOINT_URL:  http://minio:9000
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: supersecret
 
   #Jupyter configuration
   jupyter:
@@ -135,10 +130,10 @@ services:
       dockerfile: Dockerfile_jupyter
     depends_on:
       - mlflow_serv
- #     - minio
+      - minio
     environment:
       MLFLOW_URI: "http://mlflow_serv:5000"
-      MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret 
     volumes:
@@ -156,38 +151,37 @@ services:
       - "8084:5000" 
     command: >
       mlflow server
-      --backend-store-uri mysql+pymysql://root:airflow@10.43.101.156:30082/mlflow
+      --backend-store-uri mysql+pymysql://root:airflow@mysql:3306/mlflow
       --default-artifact-root s3://mlflows3
       --host 0.0.0.0
       --port 5000
       --serve-artifacts
-#    depends_on:
-#      - minio
+    depends_on:
+      - mysql
+      - minio
     environment:
-      MLFLOW_S3_ENDPOINT_URL: http://10.43.101.156:31000
-
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
       AWS_ACCESS_KEY_ID: admin
       AWS_SECRET_ACCESS_KEY: supersecret
-
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8084/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-#  minio:
-#    container_name: Minio
-#    command: server /data --console-address ":9001"
-#    environment:
-#      - MINIO_ROOT_USER=admin
-#      - MINIO_ROOT_PASSWORD=supersecret
-#    image: quay.io/minio/minio:latest
-#    ports:
-#      - '9000:9000'
-#      - '8083:9001'
-#    volumes:
-#      - ./minio:/data
-#    restart: unless-stopped
+  minio:
+    container_name: Minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=supersecret
+    image: quay.io/minio/minio:latest
+    ports:
+      - '9000:9000'
+      - '8083:9001'
+    volumes:
+      - ./minio:/data
+    restart: unless-stopped
 
   postgres:
     image: postgres:13
@@ -204,28 +198,28 @@ services:
       start_period: 5s
     restart: always
 
-#  mysql:
-#    image: mysql:latest
-#    ports:
-#      - "8082:3306"
-#    environment:
-#      MYSQL_ROOT_PASSWORD: airflow
-#      #MYSQL_DATABASE: RAW_DATA
-#    healthcheck:
-#      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 3
-#      start_period: 10s
-#    restart: always
-#    #- run: mysql -h 127.0.0.1 -u root -e "mlflow"
-#    stdin_open: true # docker run -i
-#    tty: true        # docker run -t    
-#    volumes:
-#      - mysql_data:/var/lib/mysql
-#      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
-#    networks:
-#      - network1
+  mysql:
+    image: mysql:latest
+    ports:
+      - "8082:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: airflow
+      #MYSQL_DATABASE: RAW_DATA
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: always
+    #- run: mysql -h 127.0.0.1 -u root -e "mlflow"
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t    
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    networks:
+      - network1
 
   adminer:
     image: adminer
@@ -432,12 +426,12 @@ services:
         condition: service_completed_successfully
 
 volumes:
-#  minio-data:
+  minio-data:
   postgres-db-volume:
-#  mysql_data:
+  mysql_data:
   notebooks:
 
 networks:
   network1:
-      name: proyecto31_default
+      name: proyectofinal_default
       external: true

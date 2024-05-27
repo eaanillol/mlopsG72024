@@ -8,3 +8,5 @@ sqlalchemy
 pymysql
 pandas
 numpy
+xgboost
+shap
