@@ -66,8 +66,6 @@ Las diferencias en los resultados de los dos modelos  (al observar los diagramas
 
 ![Arquitectura.](./img/SHAP_M1-3.png)
 ![Arquitectura.](./img/SHAP_M2-3.png)
-
-#GITHUB Actions
  
 # Configuración de la API
 
@@ -112,8 +110,100 @@ engine = create_engine('mysql+pymysql://root:airflow@10.43.101.156:8082/RAW_DATA
         input_df.to_sql('new_real_estate', con=engine, if_exists='append', index=False)
 ```
 
+# Github Actions y Docker Hub
+Github Actions es una herramienta proporcionada por Github para realizar despliegues continuos y/o ejecución de acciones que evaluan los archivos o códigos subidos a un repositorio.
+
+## Configuración
+Para usar Github Actions con Docker debemos crear credenciales en Docker Hub que  se usaran en la configuración inicial del Actions.
+
+### Docker
+- Ingresamos a la página de Docker Hub https://hub.docker.com/
+- Ahora logueése con su usuario de Github y vaya a **My Account**
+![Cuenta Dockerhub](./img/dockerhub_account_1.png)
+- Abra la opción de **Security** y luego click en **New Access Token**
+![Cuenta Dockerhub](./img/dockerhub_account_2.png)
+- Le damos un nombre al token de acceso con los permisos necesarios y finalmente damos click a **Generar**.
+- Copie las credenciasles creadas en un lugar seguro, ya que vamos a usarlas en Github Actions para poder hacer push a las imágenes Docker.
+
+### Github Actions
+Primero debemos abrir el repositorio https://github.com/eaanillol/mlopsG72024 y nos movemos  a la rama **proyecto-final**. Vamos al tab de settings en el repositorio:
+![Settings Guithub Actions](./img/githubactions_1.png)
+
+Bajamos hasta la sección de security y entramos a la opción **Actions**:
+![Settings Guithub Actions](./img/githubactions_2.png)
+
+Como vamos a agregar las variables de usuario y contraseña damos click en **New repository secret** para crearlas.
+
+Ya teniendo las variables creadas, debemos agregar un archivo YML en la ruta *.github/workflows/github-actions-demo.yml*. El contenido del archivo s e puede ver en: https://github.com/eaanillol/mlopsG72024/blob/proyecto-final/.github/workflows/github-actions-demo.yml
+
+Ahora vamos a explicar las partes más importantes del archivo. Al principio se define cuando se ejecuta Github Actions:
+```
+on: 
+  push:
+    branches:
+      - proyecto-final
+```
+Aquí le estamos diciendo al workflow que se ejecute cada vez que se haga un *push*  a la rama  *proyecto-final*. Luego definimos las propiedades del job junto con los pasos a ejecutar.
+
+```
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+```
+*runs-on* le dice al job en que sistema operativo se debe ejecutar.
+
+Luego definimos los pasos. Al iniciar el deployment nos logueamos en Docker Hub con las credenciales creadas:
+
+``` 
+    steps:
+      #Pasos de información
+      #Pasos de información
+      #Deployment
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+``` 
+Paso siguiente es decirle a Github como crear las imágenes para hacer push en Docker Hub. En el archivo YML le pasamos la lista de archivos para los builds de cada imagen:
+
+``` 
+      - name: Build and push API MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_api
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mi_api:latest
+      - name: Build and push Streamlit MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_streamlit
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-streamlit_app:latest
+      - name: Build and push Jupyter MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_jupyter
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-jupyter:latest
+      - name: Build and push MLFLOW MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile_mlflow
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-mlflow_serv:latest
+      - name: Build and push Airflow MLOPs
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: ./proyectoFinal/Dockerfile
+          tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-airflow:latest
+```
+Probamos el workflow haciendo un push a la rama **proyecto-final**. Abrimos la pestaña de de Actions y abrimos la ejecución actual para revisar el proceso:
+![Actions Guithub Actions](./img/githubactions_3.png)
+
 # Ejecución de la Arquitectura
-A continuación mostraremos el paso a paso para la ejecución y montaje de la infraestructura del proyecto.
+A continuación mostraremos el paso a paso para la ejecución  del proyecto.
 
 ## Docker Compose
 Para levantar el servicio en el servidor debemos realizar los siguientes pasos:
