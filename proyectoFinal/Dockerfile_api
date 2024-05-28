@@ -1,6 +1,6 @@
 # Dockerfile
 FROM python:3.9
-#Este es el workdir
+#Este es el workdir.
 WORKDIR /code
 
 COPY ./proyectoFinal/requirements_api.txt .
