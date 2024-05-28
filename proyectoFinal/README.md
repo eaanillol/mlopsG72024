@@ -199,7 +199,7 @@ Paso siguiente es decirle a Github como crear las imágenes para hacer push en D
           file: ./proyectoFinal/Dockerfile
           tags: ${{ secrets.DOCKERHUB_TAG }}/proyectofinal-airflow:latest
 ```
-Probamos el workflow haciendo un push a la rama **proyecto-final**. Abrimos la pestaña de de Actions y abrimos la ejecución actual para revisar el proceso:
+Probamos el workflow haciendo un push a la rama **proyecto-final**. Abrimos la pestaña de de Actions y revisamos la ejecución actual para revisar el proceso:
 ![Actions Guithub Actions](./img/githubactions_3.png)
 
 # Ejecución de la Arquitectura
